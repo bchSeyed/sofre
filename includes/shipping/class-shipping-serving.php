@@ -1,0 +1,26 @@
+<?php if (!defined('ABSPATH')) exit;
+class Boshqab_Shipping_Serving extends WC_Shipping_Method {
+    public function __construct($instance_id = 0) {
+        $this->id = 'bq_serving';
+        $this->instance_id = absint($instance_id);
+        $this->method_title = 'صرف در رستوران';
+        $this->method_description = 'مشتری سفارش را در رستوران صرف می‌کند';
+        $this->supports = array('settings', 'shipping-zones', 'instance-settings');
+        $this->init();
+    }
+    public function init() {
+        $this->init_form_fields();
+        $this->init_settings();
+        $this->title = $this->get_option('title', 'صرف در رستوران');
+        add_action('woocommerce_update_options_shipping_' . $this->id, array($this, 'process_admin_options'));
+    }
+    public function init_form_fields() {
+        $this->form_fields = array(
+            'enabled' => array('title' => 'فعال/غیرفعال', 'type' => 'checkbox', 'label' => 'فعال باشد', 'default' => 'yes'),
+            'title' => array('title' => 'عنوان', 'type' => 'text', 'default' => 'صرف در رستوران'),
+        );
+    }
+    public function calculate_shipping($package = array()) {
+        $this->add_rate(array('id' => $this->id, 'label' => $this->title, 'cost' => 0, 'package' => $package));
+    }
+}

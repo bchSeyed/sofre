@@ -7,7 +7,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class Reyhoon_Simple_Orders {
+class Boshqab_Orders {
 
     private static $instance = null;
 
@@ -38,11 +38,11 @@ class Reyhoon_Simple_Orders {
         foreach ($order_statuses as $key => $status) {
             $new_statuses[$key] = $status;
             if ($key === 'wc-processing') {
-                $new_statuses['wc-ryns-pending'] = 'در انتظار تایید رستوران';
-                $new_statuses['wc-ryns-preparing'] = 'در حال آماده‌سازی';
-                $new_statuses['wc-ryns-ready'] = 'آماده تحویل';
-                $new_statuses['wc-ryns-delivering'] = 'در حال ارسال';
-                $new_statuses['wc-ryns-delivered'] = 'تحویل شده';
+                $new_statuses['wc-bq-pending'] = 'در انتظار تایید رستوران';
+                $new_statuses['wc-bq-preparing'] = 'در حال آماده‌سازی';
+                $new_statuses['wc-bq-ready'] = 'آماده تحویل';
+                $new_statuses['wc-bq-delivering'] = 'در حال ارسال';
+                $new_statuses['wc-bq-delivered'] = 'تحویل شده';
             }
         }
         
@@ -56,11 +56,11 @@ class Reyhoon_Simple_Orders {
         $status = $order->get_status();
         
         $steps = array(
-            'ryns-pending' => array('label' => 'در انتظار تایید', 'icon' => '📋'),
-            'ryns-preparing' => array('label' => 'در حال آماده‌سازی', 'icon' => '👨‍🍳'),
-            'ryns-ready' => array('label' => 'آماده تحویل', 'icon' => '✅'),
-            'ryns-delivering' => array('label' => 'در حال ارسال', 'icon' => '🛵'),
-            'ryns-delivered' => array('label' => 'تحویل شده', 'icon' => '🎉'),
+            'bq-pending' => array('label' => 'در انتظار تایید', 'icon' => '📋'),
+            'bq-preparing' => array('label' => 'در حال آماده‌سازی', 'icon' => '👨‍🍳'),
+            'bq-ready' => array('label' => 'آماده تحویل', 'icon' => '✅'),
+            'bq-delivering' => array('label' => 'در حال ارسال', 'icon' => '🛵'),
+            'bq-delivered' => array('label' => 'تحویل شده', 'icon' => '🎉'),
         );
         
         if (!array_key_exists($status, $steps) && !array_key_exists(str_replace('wc-', '', $status), $steps)) {
@@ -69,9 +69,9 @@ class Reyhoon_Simple_Orders {
         
         $current_status = str_replace('wc-', '', $status);
         
-        echo '<div class="ryns-order-tracking">';
+        echo '<div class="bq-order-tracking">';
         echo '<h3>وضعیت سفارش</h3>';
-        echo '<div class="ryns-tracking-steps">';
+        echo '<div class="bq-tracking-steps">';
         
         $found = false;
         foreach ($steps as $step_key => $step) {
@@ -80,9 +80,9 @@ class Reyhoon_Simple_Orders {
             }
             
             $class = $found ? 'active' : 'inactive';
-            echo '<div class="ryns-tracking-step ' . $class . '">';
-            echo '<span class="ryns-step-icon">' . $step['icon'] . '</span>';
-            echo '<span class="ryns-step-label">' . $step['label'] . '</span>';
+            echo '<div class="bq-tracking-step ' . $class . '">';
+            echo '<span class="bq-step-icon">' . $step['icon'] . '</span>';
+            echo '<span class="bq-step-label">' . $step['label'] . '</span>';
             echo '</div>';
         }
         
@@ -90,30 +90,30 @@ class Reyhoon_Simple_Orders {
         echo '</div>';
         ?>
         <style>
-        .ryns-order-tracking {
+        .bq-order-tracking {
             margin: 30px 0;
             padding: 20px;
             background: #f8f8f8;
             border-radius: 12px;
         }
-        .ryns-order-tracking h3 {
+        .bq-order-tracking h3 {
             margin-top: 0;
             margin-bottom: 20px;
             text-align: center;
         }
-        .ryns-tracking-steps {
+        .bq-tracking-steps {
             display: flex;
             justify-content: space-between;
             align-items: center;
             position: relative;
         }
-        .ryns-tracking-step {
+        .bq-tracking-step {
             text-align: center;
             flex: 1;
             position: relative;
             padding: 10px 0;
         }
-        .ryns-tracking-step:not(:last-child)::after {
+        .bq-tracking-step:not(:last-child)::after {
             content: '';
             position: absolute;
             top: 50%;
@@ -123,28 +123,28 @@ class Reyhoon_Simple_Orders {
             background: #ddd;
             z-index: 0;
         }
-        .ryns-tracking-step.active:not(:last-child)::after {
+        .bq-tracking-step.active:not(:last-child)::after {
             background: #4CAF50;
         }
-        .ryns-tracking-step .ryns-step-icon {
+        .bq-tracking-step .bq-step-icon {
             display: block;
             font-size: 28px;
             margin-bottom: 5px;
         }
-        .ryns-tracking-step.active .ryns-step-icon {
+        .bq-tracking-step.active .bq-step-icon {
             transform: scale(1.2);
         }
-        .ryns-tracking-step.inactive .ryns-step-icon {
+        .bq-tracking-step.inactive .bq-step-icon {
             opacity: 0.4;
         }
-        .ryns-tracking-step .ryns-step-label {
+        .bq-tracking-step .bq-step-label {
             font-size: 12px;
             display: block;
         }
-        .ryns-tracking-step.inactive .ryns-step-label {
+        .bq-tracking-step.inactive .bq-step-label {
             color: #999;
         }
-        .ryns-tracking-step.active .ryns-step-label {
+        .bq-tracking-step.active .bq-step-label {
             color: #4CAF50;
             font-weight: bold;
         }
@@ -157,8 +157,8 @@ class Reyhoon_Simple_Orders {
      */
     public function add_order_meta_box() {
         add_meta_box(
-            'ryns_order_status_box',
-            'وضعیت ریحون ساده',
+            'bq_order_status_box',
+            'وضعیت بشقاب',
             array($this, 'render_order_meta_box'),
             'shop_order',
             'side',
@@ -176,31 +176,31 @@ class Reyhoon_Simple_Orders {
             <p style="font-size:18px;font-weight:bold;margin-bottom:15px;">
                 وضعیت فعلی: <?php echo esc_html(wc_get_order_status_name($current_status)); ?>
             </p>
-            <select class="ryns-quick-status" data-order-id="<?php echo $order->get_id(); ?>" style="width:100%;margin-bottom:10px;padding:8px;border-radius:6px;border:1px solid #ddd;">
+            <select class="bq-quick-status" data-order-id="<?php echo $order->get_id(); ?>" style="width:100%;margin-bottom:10px;padding:8px;border-radius:6px;border:1px solid #ddd;">
                 <option value="">تغییر وضعیت...</option>
-                <option value="ryns-pending" <?php selected($current_status, 'ryns-pending'); ?>>در انتظار تایید</option>
-                <option value="ryns-preparing" <?php selected($current_status, 'ryns-preparing'); ?>>در حال آماده‌سازی</option>
-                <option value="ryns-ready" <?php selected($current_status, 'ryns-ready'); ?>>آماده تحویل</option>
-                <option value="ryns-delivering" <?php selected($current_status, 'ryns-delivering'); ?>>در حال ارسال</option>
-                <option value="ryns-delivered" <?php selected($current_status, 'ryns-delivered'); ?>>تحویل شده</option>
+                <option value="bq-pending" <?php selected($current_status, 'bq-pending'); ?>>در انتظار تایید</option>
+                <option value="bq-preparing" <?php selected($current_status, 'bq-preparing'); ?>>در حال آماده‌سازی</option>
+                <option value="bq-ready" <?php selected($current_status, 'bq-ready'); ?>>آماده تحویل</option>
+                <option value="bq-delivering" <?php selected($current_status, 'bq-delivering'); ?>>در حال ارسال</option>
+                <option value="bq-delivered" <?php selected($current_status, 'bq-delivered'); ?>>تحویل شده</option>
             </select>
-            <span class="ryns-quick-status-msg" style="color:#4CAF50;display:none;"></span>
+            <span class="bq-quick-status-msg" style="color:#4CAF50;display:none;"></span>
         </div>
         <script>
         jQuery(document).ready(function($) {
-            $('.ryns-quick-status').on('change', function() {
+            $('.bq-quick-status').on('change', function() {
                 var orderId = $(this).data('order-id');
                 var status = $(this).val();
                 if (!status) return;
                 
-                var msgEl = $(this).siblings('.ryns-quick-status-msg');
+                var msgEl = $(this).siblings('.bq-quick-status-msg');
                 msgEl.hide();
                 
                 $.post(ajaxurl, {
-                    action: 'ryns_update_order_status',
+                    action: 'bq_update_order_status',
                     order_id: orderId,
                     status: status,
-                    nonce: '<?php echo wp_create_nonce("ryns_nonce"); ?>'
+                    nonce: '<?php echo wp_create_nonce("bq_nonce"); ?>'
                 }, function(response) {
                     if (response.success) {
                         msgEl.text('✅ وضعیت بروزرسانی شد').show().delay(2000).fadeOut();
@@ -214,4 +214,4 @@ class Reyhoon_Simple_Orders {
     }
 }
 
-Reyhoon_Simple_Orders::instance();
+Boshqab_Orders::instance();

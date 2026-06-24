@@ -5,26 +5,26 @@ jQuery(document).ready(function($) {
 
     // ============ 1. رستوران باز/بسته کردن ============
     
-    $('#ryns-toggle-restaurant').on('click', function() {
+    $('#bq-toggle-restaurant').on('click', function() {
         var btn = $(this);
         btn.prop('disabled', true);
         
-        $.post(ryns_ajax.ajax_url, {
-            action: 'ryns_toggle_restaurant',
-            nonce: ryns_ajax.nonce
+        $.post(bq_ajax.ajax_url, {
+            action: 'bq_toggle_restaurant',
+            nonce: bq_ajax.nonce
         }, function(response) {
             if (response.success) {
                 var isOpen = response.data.status === 'yes';
                 btn.removeClass('open closed').addClass(isOpen ? 'open' : 'closed');
-                btn.find('.ryns-toggle-text').text(isOpen ? 'باز' : 'بسته');
+                btn.find('.bq-toggle-text').text(isOpen ? 'باز' : 'بسته');
                 btn.data('current', isOpen ? 'open' : 'closed');
 
-                var banner = $('#ryns-status-banner');
+                var banner = $('#bq-status-banner');
                 if (banner.length) {
-                    banner.removeClass('ryns-status-open ryns-status-closed')
-                          .addClass(isOpen ? 'ryns-status-open' : 'ryns-status-closed');
-                    banner.find('.ryns-status-icon').html(isOpen ? '🟢' : '🔴');
-                    banner.find('.ryns-status-msg').text(
+                    banner.removeClass('bq-status-open bq-status-closed')
+                          .addClass(isOpen ? 'bq-status-open' : 'bq-status-closed');
+                    banner.find('.bq-status-icon').html(isOpen ? '🟢' : '🔴');
+                    banner.find('.bq-status-msg').text(
                         isOpen ? 'رستوران باز است و سفارش پذیرفته می‌شود' : 'رستوران بسته است - سفارشات پذیرفته نمی‌شوند'
                     );
                 }
@@ -42,7 +42,7 @@ jQuery(document).ready(function($) {
             clearInterval(pollingInterval);
         }
 
-        var firstRow = $('.ryns-order-row').first();
+        var firstRow = $('.bq-order-row').first();
         if (firstRow.length) {
             lastOrderId = parseInt(firstRow.data('order-id')) || 0;
         }
@@ -53,15 +53,15 @@ jQuery(document).ready(function($) {
     }
 
     function checkNewOrders() {
-        $.post(ryns_ajax.ajax_url, {
-            action: 'ryns_check_new_orders',
+        $.post(bq_ajax.ajax_url, {
+            action: 'bq_check_new_orders',
             last_order_id: lastOrderId,
-            nonce: ryns_ajax.nonce
+            nonce: bq_ajax.nonce
         }, function(response) {
             if (response.success && response.data.new_count > 0) {
                 playNotificationSound();
                 
-                var badge = $('#ryns-live-badge');
+                var badge = $('#bq-live-badge');
                 if (badge.length) {
                     badge.text('🔔 ' + response.data.new_count + ' سفارش جدید').show();
                     setTimeout(function() { badge.fadeOut(); }, 5000);
@@ -96,7 +96,7 @@ jQuery(document).ready(function($) {
 
     // ============ 4. تغییر وضعیت سفارش ============
     
-    $('.ryns-order-status').on('change', function() {
+    $('.bq-order-status').on('change', function() {
         var select = $(this);
         var orderId = select.data('order-id');
         var status = select.val();
@@ -105,11 +105,11 @@ jQuery(document).ready(function($) {
         
         select.prop('disabled', true);
         
-        $.post(ryns_ajax.ajax_url, {
-            action: 'ryns_update_order_status',
+        $.post(bq_ajax.ajax_url, {
+            action: 'bq_update_order_status',
             order_id: orderId,
             status: status,
-            nonce: ryns_ajax.nonce
+            nonce: bq_ajax.nonce
         }, function(response) {
             if (response.success) {
                 setTimeout(function() { location.reload(); }, 500);
@@ -125,29 +125,29 @@ jQuery(document).ready(function($) {
 
     // ============ 5. مودال جزئیات سفارش ============
     
-    $(document).on('click', '.ryns-view-order', function() {
+    $(document).on('click', '.bq-view-order', function() {
         var orderId = $(this).data('order-id');
         showOrderDetail(orderId);
     });
 
     function showOrderDetail(orderId) {
-        var modal = $('#ryns-order-modal');
+        var modal = $('#bq-order-modal');
         modal.show();
-        $('#ryns-modal-order-number').text('#' + orderId);
-        $('#ryns-modal-body').html(
-            '<div class="ryns-loading" style="text-align:center;padding:40px;">' +
-            '<div class="ryns-spinner"></div><p>در حال بارگذاری...</p></div>'
+        $('#bq-modal-order-number').text('#' + orderId);
+        $('#bq-modal-body').html(
+            '<div class="bq-loading" style="text-align:center;padding:40px;">' +
+            '<div class="bq-spinner"></div><p>در حال بارگذاری...</p></div>'
         );
 
-        $.post(ryns_ajax.ajax_url, {
-            action: 'ryns_get_order_detail',
+        $.post(bq_ajax.ajax_url, {
+            action: 'bq_get_order_detail',
             order_id: orderId,
-            nonce: ryns_ajax.nonce
+            nonce: bq_ajax.nonce
         }, function(response) {
             if (response.success) {
                 renderOrderDetail(response.data);
             } else {
-                $('#ryns-modal-body').html('<p style="color:red;text-align:center;padding:40px;">خطا در دریافت اطلاعات</p>');
+                $('#bq-modal-body').html('<p style="color:red;text-align:center;padding:40px;">خطا در دریافت اطلاعات</p>');
             }
         });
     }
@@ -155,33 +155,33 @@ jQuery(document).ready(function($) {
     function renderOrderDetail(data) {
         var html = '';
         
-        html += '<div class="ryns-order-section">';
+        html += '<div class="bq-order-section">';
         html += '<h3>👤 اطلاعات مشتری</h3>';
-        html += '<table class="ryns-detail-table">';
+        html += '<table class="bq-detail-table">';
         html += '<tr><th>نام:</th><td>' + data.customer + '</td></tr>';
         html += '<tr><th>تلفن:</th><td>' + data.phone + '</td></tr>';
         html += '<tr><th>ایمیل:</th><td>' + data.email + '</td></tr>';
         html += '<tr><th>آدرس:</th><td>' + data.address + '</td></tr>';
         html += '</table></div>';
 
-        html += '<div class="ryns-order-section">';
+        html += '<div class="bq-order-section">';
         html += '<h3>🛒 آیتم‌های سفارش (' + data.items_count + ')</h3>';
-        html += '<table class="ryns-detail-table">';
+        html += '<table class="bq-detail-table">';
         html += '<thead><tr><th>محصول</th><th>تعداد</th><th>قیمت</th></tr></thead>';
         html += '<tbody>' + data.items_html + '</tbody>';
         html += '</table></div>';
 
-        html += '<div class="ryns-order-section">';
+        html += '<div class="bq-order-section">';
         html += '<h3>💰 مبالغ</h3>';
-        html += '<table class="ryns-detail-table">';
+        html += '<table class="bq-detail-table">';
         html += '<tr><th>جمع جزء:</th><td>' + data.subtotal + '</td></tr>';
         html += '<tr><th>هزینه ارسال:</th><td>' + data.shipping_total + '</td></tr>';
         html += '<tr><th><strong>جمع کل:</strong></th><td><strong>' + data.total + '</strong></td></tr>';
         html += '</table></div>';
 
-        html += '<div class="ryns-order-section">';
+        html += '<div class="bq-order-section">';
         html += '<h3>📋 اطلاعات تکمیلی</h3>';
-        html += '<table class="ryns-detail-table">';
+        html += '<table class="bq-detail-table">';
         html += '<tr><th>تاریخ:</th><td>' + data.date + '</td></tr>';
         html += '<tr><th>روش پرداخت:</th><td>' + data.payment_method + '</td></tr>';
         html += '<tr><th>وضعیت:</th><td>' + data.status + '</td></tr>';
@@ -191,54 +191,54 @@ jQuery(document).ready(function($) {
         html += '</table></div>';
 
         html += '<div style="text-align:center;margin-top:20px;">';
-        html += '<a href="' + ryns_ajax.ajax_url.replace('admin-ajax.php', 'post.php?post=' + data.id + '&action=edit') + '" class="button button-primary" target="_blank">مشاهده در ووکامرس</a>';
+        html += '<a href="' + bq_ajax.ajax_url.replace('admin-ajax.php', 'post.php?post=' + data.id + '&action=edit') + '" class="button button-primary" target="_blank">مشاهده در ووکامرس</a>';
         html += '</div>';
 
-        $('#ryns-modal-body').html(html);
+        $('#bq-modal-body').html(html);
     }
 
-    $(document).on('click', '.ryns-modal-close, .ryns-modal-overlay', function() {
-        $('#ryns-order-modal').hide();
+    $(document).on('click', '.bq-modal-close, .bq-modal-overlay', function() {
+        $('#bq-order-modal').hide();
     });
 
     // ============ 6. آپلود لوگو ============
     
-    var rynsFileFrame = null;
+    var bqFileFrame = null;
 
-    $('#ryns-upload-logo').on('click', function(e) {
+    $('#bq-upload-logo').on('click', function(e) {
         e.preventDefault();
 
-        if (rynsFileFrame) {
-            rynsFileFrame.open();
+        if (bqFileFrame) {
+            bqFileFrame.open();
             return;
         }
 
-        rynsFileFrame = wp.media({
+        bqFileFrame = wp.media({
             title: 'انتخاب لوگوی رستوران',
             button: { text: 'انتخاب لوگو' },
             multiple: false,
             library: { type: 'image' }
         });
 
-        rynsFileFrame.on('select', function() {
-            var attachment = rynsFileFrame.state().get('selection').first().toJSON();
-            $('#ryns_restaurant_logo').val(attachment.url);
-            $('#ryns-logo-preview').html('<img src="' + attachment.url + '" style="max-width:150px;max-height:80px;">');
-            $('#ryns-remove-logo').show();
+        bqFileFrame.on('select', function() {
+            var attachment = bqFileFrame.state().get('selection').first().toJSON();
+            $('#bq_restaurant_logo').val(attachment.url);
+            $('#bq-logo-preview').html('<img src="' + attachment.url + '" style="max-width:150px;max-height:80px;">');
+            $('#bq-remove-logo').show();
         });
 
-        rynsFileFrame.open();
+        bqFileFrame.open();
     });
 
-    $('#ryns-remove-logo').on('click', function() {
-        $('#ryns_restaurant_logo').val('');
-        $('#ryns-logo-preview').html('<span class="ryns-logo-placeholder">لوگو انتخاب نشده</span>');
+    $('#bq-remove-logo').on('click', function() {
+        $('#bq_restaurant_logo').val('');
+        $('#bq-logo-preview').html('<span class="bq-logo-placeholder">لوگو انتخاب نشده</span>');
         $(this).hide();
     });
 
     // ============ 7. شروع Polling ============
     
-    if ($('.ryns-dashboard').length || $('.ryns-orders-wrap').length) {
+    if ($('.bq-dashboard').length || $('.bq-orders-wrap').length) {
         setTimeout(function() { startOrderPolling(); }, 2000);
     }
 });

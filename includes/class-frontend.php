@@ -7,7 +7,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class Reyhoon_Simple_Frontend {
+class Boshqab_Frontend {
 
     private static $instance = null;
 
@@ -21,7 +21,7 @@ class Reyhoon_Simple_Frontend {
     public function __construct() {
         // نمایش ستون وضعیت سفارش در حساب کاربری
         add_filter('woocommerce_my_account_my_orders_columns', array($this, 'add_status_column'));
-        add_action('woocommerce_my_account_my_orders_column_ryns-status', array($this, 'render_status_column'));
+        add_action('woocommerce_my_account_my_orders_column_bq-status', array($this, 'render_status_column'));
         
         // افزودن اطلاعات تحویل در صفحه تسویه حساب
         add_action('woocommerce_checkout_before_customer_details', array($this, 'checkout_delivery_info'));
@@ -32,7 +32,7 @@ class Reyhoon_Simple_Frontend {
         foreach ($columns as $key => $column) {
             $new_columns[$key] = $column;
             if ($key === 'order-total') {
-                $new_columns['ryns-status'] = 'وضعیت';
+                $new_columns['bq-status'] = 'وضعیت';
             }
         }
         return $new_columns;
@@ -41,11 +41,11 @@ class Reyhoon_Simple_Frontend {
     public function render_status_column($order) {
         $status = $order->get_status();
         $labels = array(
-            'ryns-pending' => 'در انتظار تایید',
-            'ryns-preparing' => 'در حال آماده‌سازی',
-            'ryns-ready' => 'آماده تحویل',
-            'ryns-delivering' => 'در حال ارسال',
-            'ryns-delivered' => 'تحویل شده',
+            'bq-pending' => 'در انتظار تایید',
+            'bq-preparing' => 'در حال آماده‌سازی',
+            'bq-ready' => 'آماده تحویل',
+            'bq-delivering' => 'در حال ارسال',
+            'bq-delivered' => 'تحویل شده',
             'processing' => 'در حال پردازش',
             'on-hold' => 'در انتظار',
             'completed' => 'تکمیل شده',
@@ -53,18 +53,18 @@ class Reyhoon_Simple_Frontend {
         );
         
         $label = isset($labels[$status]) ? $labels[$status] : $status;
-        $class = str_replace('ryns-', '', $status);
-        echo '<span class="ryns-status-badge ryns-badge-' . esc_attr($class) . '">' . esc_html($label) . '</span>';
+        $class = str_replace('bq-', '', $status);
+        echo '<span class="bq-status-badge bq-badge-' . esc_attr($class) . '">' . esc_html($label) . '</span>';
     }
 
     public function checkout_delivery_info() {
-        $min_order = get_option('ryns_min_order_amount', 0);
-        $delivery_fee = get_option('ryns_delivery_fee', 0);
-        $free_delivery = get_option('ryns_free_delivery_min', 0);
-        $restaurant_name = get_option('ryns_restaurant_name', get_bloginfo('name'));
+        $min_order = get_option('bq_min_order_amount', 0);
+        $delivery_fee = get_option('bq_delivery_fee', 0);
+        $free_delivery = get_option('bq_free_delivery_min', 0);
+        $restaurant_name = get_option('bq_restaurant_name', get_bloginfo('name'));
         
         if ($min_order || $delivery_fee || $free_delivery) {
-            echo '<div class="ryns-checkout-info">';
+            echo '<div class="bq-checkout-info">';
             echo '<h3>' . esc_html($restaurant_name) . ' - اطلاعات ارسال</h3>';
             echo '<ul>';
             if ($min_order > 0) {
@@ -82,4 +82,4 @@ class Reyhoon_Simple_Frontend {
     }
 }
 
-Reyhoon_Simple_Frontend::instance();
+Boshqab_Frontend::instance();

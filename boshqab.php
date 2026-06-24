@@ -1,11 +1,11 @@
 <?php
 /**
- * Plugin Name: ریحون ساده - مدیریت سفارشات رستوران
- * Plugin URI: https://example.com/reyhoon-simple
- * Description: یک افزونه ساده و کاربردی برای مدیریت منو و سفارشات رستوران - مشابه ریحون اما بدون پیچیدگی
+ * Plugin Name: بشقاب - مدیریت سفارشات رستوران
+ * Plugin URI: https://example.com/boshqab
+ * Description: افزونه مدیریت منو و سفارشات رستوران — بشقاب
  * Version: 1.1.0
- * Author: Reyhoon Simple
- * Text Domain: reyhoon-simple
+ * Author: Boshqab
+ * Text Domain: boshqab
  * Domain Path: /languages
  * Requires WooCommerce: true
  */
@@ -14,11 +14,11 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('RYNS_VERSION', '1.1.0');
-define('RYNS_PATH', plugin_dir_path(__FILE__));
-define('RYNS_URL', plugin_dir_url(__FILE__));
+define('BQ_VERSION', '1.1.0');
+define('BQ_PATH', plugin_dir_path(__FILE__));
+define('BQ_URL', plugin_dir_url(__FILE__));
 
-class Reyhoon_Simple {
+class Boshqab_Plugin {
 
     private static $instance = null;
 
@@ -58,13 +58,13 @@ class Reyhoon_Simple {
         );
         
         foreach ($defaults as $key => $value) {
-            if (get_option('ryns_' . $key) === false) {
-                add_option('ryns_' . $key, $value);
+            if (get_option('bq_' . $key) === false) {
+                add_option('bq_' . $key, $value);
             }
         }
 
         // ذخیره پیشفرض ساعت کاری هفتگی
-        if (!get_option('ryns_business_hours')) {
+        if (!get_option('bq_business_hours')) {
             $week_hours = array();
             $days = array('saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday');
             foreach ($days as $day) {
@@ -74,7 +74,7 @@ class Reyhoon_Simple {
                     'close_time' => '23:00',
                 );
             }
-            update_option('ryns_business_hours', $week_hours);
+            update_option('bq_business_hours', $week_hours);
         }
     }
 
@@ -87,111 +87,115 @@ class Reyhoon_Simple {
         add_action('init', array($this, 'register_order_statuses'));
         
         // Ajax handlers
-        add_action('wp_ajax_ryns_save_settings', array($this, 'ajax_save_settings'));
-        add_action('wp_ajax_ryns_update_order_status', array($this, 'ajax_update_order_status'));
-        add_action('wp_ajax_ryns_toggle_restaurant', array($this, 'ajax_toggle_restaurant'));
-        add_action('wp_ajax_ryns_check_new_orders', array($this, 'ajax_check_new_orders'));
-        add_action('wp_ajax_ryns_get_order_detail', array($this, 'ajax_get_order_detail'));
-        add_action('wp_ajax_nopriv_ryns_get_categories', array($this, 'ajax_get_categories'));
-        add_action('wp_ajax_ryns_get_categories', array($this, 'ajax_get_categories'));
-        add_action('wp_ajax_nopriv_ryns_check_restaurant_status', array($this, 'ajax_check_restaurant_status'));
-        add_action('wp_ajax_ryns_check_restaurant_status', array($this, 'ajax_check_restaurant_status'));
+        add_action('wp_ajax_bq_save_settings', array($this, 'ajax_save_settings'));
+        add_action('wp_ajax_bq_update_order_status', array($this, 'ajax_update_order_status'));
+        add_action('wp_ajax_bq_toggle_restaurant', array($this, 'ajax_toggle_restaurant'));
+        add_action('wp_ajax_bq_check_new_orders', array($this, 'ajax_check_new_orders'));
+        add_action('wp_ajax_bq_get_order_detail', array($this, 'ajax_get_order_detail'));
+        add_action('wp_ajax_nopriv_bq_get_categories', array($this, 'ajax_get_categories'));
+        add_action('wp_ajax_bq_get_categories', array($this, 'ajax_get_categories'));
+        add_action('wp_ajax_nopriv_bq_check_restaurant_status', array($this, 'ajax_check_restaurant_status'));
+        add_action('wp_ajax_bq_check_restaurant_status', array($this, 'ajax_check_restaurant_status'));
     }
 
     private function includes() {
-        require_once RYNS_PATH . 'includes/class-menu.php';
-        require_once RYNS_PATH . 'includes/class-orders.php';
-        require_once RYNS_PATH . 'includes/class-frontend.php';
+        require_once BQ_PATH . 'includes/class-menu.php';
+        require_once BQ_PATH . 'includes/class-orders.php';
+        require_once BQ_PATH . 'includes/class-frontend.php';
+        require_once BQ_PATH . 'includes/class-otp-login.php';
+        require_once BQ_PATH . 'includes/class-drawer.php';
+        require_once BQ_PATH . 'includes/class-services.php';
+        require_once BQ_PATH . 'includes/class-shipping.php';
     }
 
     private function create_default_pages() {
-        if (!get_option('ryns_menu_page_id')) {
+        if (!get_option('bq_menu_page_id')) {
             $page_id = wp_insert_post(array(
                 'post_title' => 'منوی رستوران',
-                'post_content' => '[reyhoon_simple_menu]',
+                'post_content' => '[boshqab_menu]',
                 'post_status' => 'publish',
                 'post_type' => 'page',
                 'comment_status' => 'closed',
             ));
             if ($page_id && !is_wp_error($page_id)) {
-                update_option('ryns_menu_page_id', $page_id);
+                update_option('bq_menu_page_id', $page_id);
             }
         }
     }
 
     public function admin_menu() {
-        $is_open = get_option('ryns_is_open', 'yes');
+        $is_open = get_option('bq_is_open', 'yes');
         $open_icon = ($is_open === 'yes') ? '<span style="color:#4CAF50;">●</span>' : '<span style="color:#f44336;">○</span>';
         
         add_menu_page(
-            'ریحون ساده',
-            'ریحون ساده ' . $open_icon,
+            'بشقاب',
+            'بشقاب ' . $open_icon,
             'manage_options',
-            'reyhoon-simple',
+            'boshqab',
             array($this, 'dashboard_page'),
             'dashicons-food',
             55
         );
 
         add_submenu_page(
-            'reyhoon-simple',
+            'boshqab',
             'سفارشات',
             'سفارشات',
             'manage_woocommerce',
-            'reyhoon-simple-orders',
+            'boshqab-orders',
             array($this, 'orders_page')
         );
 
         add_submenu_page(
-            'reyhoon-simple',
+            'boshqab',
             'تنظیمات',
             'تنظیمات',
             'manage_options',
-            'reyhoon-simple-settings',
+            'boshqab-settings',
             array($this, 'settings_page')
         );
     }
 
     public function admin_assets($hook) {
-        if (strpos($hook, 'reyhoon-simple') === false && $hook !== 'post.php') {
+        if (strpos($hook, 'boshqab') === false && $hook !== 'post.php') {
             return;
         }
         
-        wp_enqueue_style('ryns-admin', RYNS_URL . 'assets/admin.css', array(), RYNS_VERSION);
-        wp_enqueue_script('ryns-admin', RYNS_URL . 'assets/admin.js', array('jquery'), RYNS_VERSION, true);
-        wp_localize_script('ryns-admin', 'ryns_ajax', array(
+        wp_enqueue_style('bq-admin', BQ_URL . 'assets/admin.css', array(), BQ_VERSION);
+        wp_enqueue_script('bq-admin', BQ_URL . 'assets/admin.js', array('jquery'), BQ_VERSION, true);
+        wp_localize_script('bq-admin', 'bq_ajax', array(
             'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('ryns_nonce'),
-            'is_restaurant_open' => get_option('ryns_is_open', 'yes'),
-            'restaurant_name' => get_option('ryns_restaurant_name', get_bloginfo('name')),
+            'nonce' => wp_create_nonce('bq_nonce'),
+            'is_restaurant_open' => get_option('bq_is_open', 'yes'),
+            'restaurant_name' => get_option('bq_restaurant_name', get_bloginfo('name')),
         ));
 
         // انکود کردن صدای پیشفرض اعلان (Base64 Beep)
-        $sound = get_option('ryns_notification_sound', '');
+        $sound = get_option('bq_notification_sound', '');
         if (empty($sound)) {
             // یک صدای بوق ساده به صورت base64
             $sound = base64_encode('beep');
         }
-        wp_localize_script('ryns-admin', 'ryns_sound', array(
+        wp_localize_script('bq-admin', 'bq_sound', array(
             'data' => $sound,
         ));
     }
 
     public function frontend_assets() {
         global $post;
-        $menu_page_id = get_option('ryns_menu_page_id');
+        $menu_page_id = get_option('bq_menu_page_id');
         $is_menu_page = ($menu_page_id && is_page($menu_page_id));
-        $has_shortcode = ($post && has_shortcode($post->post_content, 'reyhoon_simple_menu'));
+        $has_shortcode = ($post && has_shortcode($post->post_content, 'boshqab_menu'));
         
         if (!$is_menu_page && !$has_shortcode) {
             return;
         }
         
-        wp_enqueue_style('ryns-frontend', RYNS_URL . 'assets/frontend.css', array(), RYNS_VERSION);
-        wp_enqueue_script('ryns-frontend', RYNS_URL . 'assets/frontend.js', array('jquery'), RYNS_VERSION, true);
-        wp_localize_script('ryns-frontend', 'ryns_ajax', array(
+        wp_enqueue_style('bq-frontend', BQ_URL . 'assets/frontend.css', array(), BQ_VERSION);
+        wp_enqueue_script('bq-frontend', BQ_URL . 'assets/frontend.js', array('jquery'), BQ_VERSION, true);
+        wp_localize_script('bq-frontend', 'bq_ajax', array(
             'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('ryns_nonce'),
+            'nonce' => wp_create_nonce('bq_nonce'),
             'cart_url' => wc_get_cart_url(),
             'restaurant_open' => $this->is_restaurant_open(),
         ));
@@ -200,7 +204,7 @@ class Reyhoon_Simple {
     // ============ STATUSES ============
 
     public function register_order_statuses() {
-        register_post_status('wc-ryns-pending', array(
+        register_post_status('wc-bq-pending', array(
             'label' => 'در انتظار تایید رستوران',
             'public' => true,
             'show_in_admin_status_list' => true,
@@ -208,7 +212,7 @@ class Reyhoon_Simple {
             'label_count' => _n_noop('در انتظار تایید (%s)', 'در انتظار تایید (%s)'),
         ));
         
-        register_post_status('wc-ryns-preparing', array(
+        register_post_status('wc-bq-preparing', array(
             'label' => 'در حال آماده‌سازی',
             'public' => true,
             'show_in_admin_status_list' => true,
@@ -216,7 +220,7 @@ class Reyhoon_Simple {
             'label_count' => _n_noop('در حال آماده‌سازی (%s)', 'در حال آماده‌سازی (%s)'),
         ));
         
-        register_post_status('wc-ryns-ready', array(
+        register_post_status('wc-bq-ready', array(
             'label' => 'آماده تحویل',
             'public' => true,
             'show_in_admin_status_list' => true,
@@ -224,7 +228,7 @@ class Reyhoon_Simple {
             'label_count' => _n_noop('آماده تحویل (%s)', 'آماده تحویل (%s)'),
         ));
         
-        register_post_status('wc-ryns-delivering', array(
+        register_post_status('wc-bq-delivering', array(
             'label' => 'در حال ارسال',
             'public' => true,
             'show_in_admin_status_list' => true,
@@ -232,7 +236,7 @@ class Reyhoon_Simple {
             'label_count' => _n_noop('در حال ارسال (%s)', 'در حال ارسال (%s)'),
         ));
         
-        register_post_status('wc-ryns-delivered', array(
+        register_post_status('wc-bq-delivered', array(
             'label' => 'تحویل شده',
             'public' => true,
             'show_in_admin_status_list' => true,
@@ -244,18 +248,18 @@ class Reyhoon_Simple {
     // ============ RESTAURANT STATUS ============
 
     public function is_restaurant_open() {
-        $is_open_setting = get_option('ryns_is_open', 'yes');
+        $is_open_setting = get_option('bq_is_open', 'yes');
         if ($is_open_setting === 'no') {
             return false;
         }
 
-        $enable_ordering = get_option('ryns_enable_ordering', 'yes');
+        $enable_ordering = get_option('bq_enable_ordering', 'yes');
         if ($enable_ordering === 'no') {
             return false;
         }
 
         // بررسی ساعت کاری هفتگی
-        $business_hours = get_option('ryns_business_hours', array());
+        $business_hours = get_option('bq_business_hours', array());
         if (!empty($business_hours)) {
             $today = $this->get_persian_day_name();
             if (isset($business_hours[$today])) {
@@ -292,7 +296,7 @@ class Reyhoon_Simple {
     }
 
     public function get_restaurant_status_text() {
-        $business_hours = get_option('ryns_business_hours', array());
+        $business_hours = get_option('bq_business_hours', array());
         $today = $this->get_persian_day_name();
         
         $day_names = array(
@@ -320,28 +324,28 @@ class Reyhoon_Simple {
     // ============ PAGES ============
 
     public function dashboard_page() {
-        $orders_count = wc_orders_count('ryns-pending') + wc_orders_count('processing');
+        $orders_count = wc_orders_count('bq-pending') + wc_orders_count('processing');
         $menu_items = wp_count_posts('product')->publish;
         $today_orders = $this->get_today_orders_count();
         $is_open = $this->is_restaurant_open();
         ?>
-        <div class="ryns-dashboard">
-            <div class="ryns-dashboard-header">
-                <h1>داشبورد ریحون ساده</h1>
-                <div class="ryns-restaurant-toggle">
-                    <span class="ryns-toggle-label">وضعیت رستوران:</span>
-                    <button class="ryns-toggle-btn <?php echo $is_open ? 'open' : 'closed'; ?>" 
-                            id="ryns-toggle-restaurant"
+        <div class="bq-dashboard">
+            <div class="bq-dashboard-header">
+                <h1>داشبورد بشقاب</h1>
+                <div class="bq-restaurant-toggle">
+                    <span class="bq-toggle-label">وضعیت رستوران:</span>
+                    <button class="bq-toggle-btn <?php echo $is_open ? 'open' : 'closed'; ?>" 
+                            id="bq-toggle-restaurant"
                             data-current="<?php echo $is_open ? 'open' : 'closed'; ?>">
-                        <span class="ryns-toggle-dot"></span>
-                        <span class="ryns-toggle-text"><?php echo $is_open ? 'باز' : 'بسته'; ?></span>
+                        <span class="bq-toggle-dot"></span>
+                        <span class="bq-toggle-text"><?php echo $is_open ? 'باز' : 'بسته'; ?></span>
                     </button>
                 </div>
             </div>
 
-            <div class="ryns-status-banner <?php echo $is_open ? 'ryns-status-open' : 'ryns-status-closed'; ?>" id="ryns-status-banner">
-                <span class="ryns-status-icon"><?php echo $is_open ? '🟢' : '🔴'; ?></span>
-                <span class="ryns-status-msg">
+            <div class="bq-status-banner <?php echo $is_open ? 'bq-status-open' : 'bq-status-closed'; ?>" id="bq-status-banner">
+                <span class="bq-status-icon"><?php echo $is_open ? '🟢' : '🔴'; ?></span>
+                <span class="bq-status-msg">
                     <?php 
                     if ($is_open) {
                         echo 'رستوران باز است و سفارش پذیرفته می‌شود';
@@ -350,35 +354,35 @@ class Reyhoon_Simple {
                     }
                     ?>
                 </span>
-                <span class="ryns-hours-text"><?php echo $this->get_restaurant_status_text(); ?></span>
+                <span class="bq-hours-text"><?php echo $this->get_restaurant_status_text(); ?></span>
             </div>
 
-            <div class="ryns-stats-grid">
-                <div class="ryns-stat-card">
-                    <span class="ryns-stat-icon">📋</span>
-                    <span class="ryns-stat-number"><?php echo $orders_count; ?></span>
-                    <span class="ryns-stat-label">سفارشات فعال</span>
+            <div class="bq-stats-grid">
+                <div class="bq-stat-card">
+                    <span class="bq-stat-icon">📋</span>
+                    <span class="bq-stat-number"><?php echo $orders_count; ?></span>
+                    <span class="bq-stat-label">سفارشات فعال</span>
                 </div>
-                <div class="ryns-stat-card">
-                    <span class="ryns-stat-icon">🍽️</span>
-                    <span class="ryns-stat-number"><?php echo $menu_items; ?></span>
-                    <span class="ryns-stat-label">آیتم‌های منو</span>
+                <div class="bq-stat-card">
+                    <span class="bq-stat-icon">🍽️</span>
+                    <span class="bq-stat-number"><?php echo $menu_items; ?></span>
+                    <span class="bq-stat-label">آیتم‌های منو</span>
                 </div>
-                <div class="ryns-stat-card">
-                    <span class="ryns-stat-icon">📅</span>
-                    <span class="ryns-stat-number"><?php echo $today_orders; ?></span>
-                    <span class="ryns-stat-label">سفارشات امروز</span>
+                <div class="bq-stat-card">
+                    <span class="bq-stat-icon">📅</span>
+                    <span class="bq-stat-number"><?php echo $today_orders; ?></span>
+                    <span class="bq-stat-label">سفارشات امروز</span>
                 </div>
-                <div class="ryns-stat-card">
-                    <span class="ryns-stat-icon">👁️</span>
-                    <span class="ryns-stat-number"><a href="<?php echo get_permalink(get_option('ryns_menu_page_id')); ?>" target="_blank">مشاهده</a></span>
-                    <span class="ryns-stat-label">نمایش منو</span>
+                <div class="bq-stat-card">
+                    <span class="bq-stat-icon">👁️</span>
+                    <span class="bq-stat-number"><a href="<?php echo get_permalink(get_option('bq_menu_page_id')); ?>" target="_blank">مشاهده</a></span>
+                    <span class="bq-stat-label">نمایش منو</span>
                 </div>
             </div>
             
-            <div class="ryns-section">
-                <h2>سفارشات جدید <span class="ryns-live-badge" id="ryns-live-badge" style="display:none;">🔔 جدید</span></h2>
-                <div id="ryns-orders-container">
+            <div class="bq-section">
+                <h2>سفارشات جدید <span class="bq-live-badge" id="bq-live-badge" style="display:none;">🔔 جدید</span></h2>
+                <div id="bq-orders-container">
                     <?php $this->recent_orders_table(10); ?>
                 </div>
             </div>
@@ -387,94 +391,94 @@ class Reyhoon_Simple {
     }
 
     public function settings_page() {
-        if (isset($_POST['ryns_save_settings']) && wp_verify_nonce($_POST['_wpnonce'] ?? '', 'ryns_settings')) {
+        if (isset($_POST['bq_save_settings']) && wp_verify_nonce($_POST['_wpnonce'] ?? '', 'bq_settings')) {
             $this->save_settings();
         }
         ?>
-        <div class="ryns-settings-wrap">
-            <h1>تنظیمات ریحون ساده</h1>
+        <div class="bq-settings-wrap">
+            <h1>تنظیمات بشقاب</h1>
             <form method="post" action="">
-                <?php wp_nonce_field('ryns_settings'); ?>
-                <input type="hidden" name="ryns_save_settings" value="1">
+                <?php wp_nonce_field('bq_settings'); ?>
+                <input type="hidden" name="bq_save_settings" value="1">
                 
-                <div class="ryns-settings-section">
+                <div class="bq-settings-section">
                     <h2>اطلاعات رستوران</h2>
                     <table class="form-table">
                         <tr>
-                            <th><label for="ryns_restaurant_name">نام رستوران</label></th>
-                            <td><input type="text" id="ryns_restaurant_name" name="ryns_restaurant_name" value="<?php echo esc_attr(get_option('ryns_restaurant_name')); ?>" class="regular-text"></td>
+                            <th><label for="bq_restaurant_name">نام رستوران</label></th>
+                            <td><input type="text" id="bq_restaurant_name" name="bq_restaurant_name" value="<?php echo esc_attr(get_option('bq_restaurant_name')); ?>" class="regular-text"></td>
                         </tr>
                         <tr>
-                            <th><label for="ryns_restaurant_logo">لوگوی رستوران</label></th>
+                            <th><label for="bq_restaurant_logo">لوگوی رستوران</label></th>
                             <td>
-                                <div class="ryns-logo-upload">
-                                    <input type="hidden" id="ryns_restaurant_logo" name="ryns_restaurant_logo" value="<?php echo esc_attr(get_option('ryns_restaurant_logo')); ?>">
-                                    <div class="ryns-logo-preview" id="ryns-logo-preview">
-                                        <?php $logo = get_option('ryns_restaurant_logo'); ?>
+                                <div class="bq-logo-upload">
+                                    <input type="hidden" id="bq_restaurant_logo" name="bq_restaurant_logo" value="<?php echo esc_attr(get_option('bq_restaurant_logo')); ?>">
+                                    <div class="bq-logo-preview" id="bq-logo-preview">
+                                        <?php $logo = get_option('bq_restaurant_logo'); ?>
                                         <?php if ($logo): ?>
                                             <img src="<?php echo esc_url($logo); ?>" style="max-width:150px;max-height:80px;">
                                         <?php else: ?>
-                                            <span class="ryns-logo-placeholder">لوگو انتخاب نشده</span>
+                                            <span class="bq-logo-placeholder">لوگو انتخاب نشده</span>
                                         <?php endif; ?>
                                     </div>
-                                    <button type="button" class="button ryns-upload-logo-btn" id="ryns-upload-logo">انتخاب لوگو</button>
-                                    <button type="button" class="button ryns-remove-logo-btn" id="ryns-remove-logo" <?php echo $logo ? '' : 'style="display:none;"'; ?>>حذف لوگو</button>
+                                    <button type="button" class="button bq-upload-logo-btn" id="bq-upload-logo">انتخاب لوگو</button>
+                                    <button type="button" class="button bq-remove-logo-btn" id="bq-remove-logo" <?php echo $logo ? '' : 'style="display:none;"'; ?>>حذف لوگو</button>
                                 </div>
                             </td>
                         </tr>
                         <tr>
-                            <th><label for="ryns_restaurant_address">آدرس</label></th>
-                            <td><textarea id="ryns_restaurant_address" name="ryns_restaurant_address" rows="2" class="regular-text"><?php echo esc_textarea(get_option('ryns_restaurant_address')); ?></textarea></td>
+                            <th><label for="bq_restaurant_address">آدرس</label></th>
+                            <td><textarea id="bq_restaurant_address" name="bq_restaurant_address" rows="2" class="regular-text"><?php echo esc_textarea(get_option('bq_restaurant_address')); ?></textarea></td>
                         </tr>
                         <tr>
-                            <th><label for="ryns_restaurant_phone">تلفن تماس</label></th>
-                            <td><input type="text" id="ryns_restaurant_phone" name="ryns_restaurant_phone" value="<?php echo esc_attr(get_option('ryns_restaurant_phone')); ?>" class="regular-text"></td>
+                            <th><label for="bq_restaurant_phone">تلفن تماس</label></th>
+                            <td><input type="text" id="bq_restaurant_phone" name="bq_restaurant_phone" value="<?php echo esc_attr(get_option('bq_restaurant_phone')); ?>" class="regular-text"></td>
                         </tr>
                     </table>
                 </div>
 
-                <div class="ryns-settings-section">
+                <div class="bq-settings-section">
                     <h2>تنظیمات سفارش و ارسال</h2>
                     <table class="form-table">
                         <tr>
-                            <th><label for="ryns_enable_ordering">فعال بودن سفارش‌گیری</label></th>
+                            <th><label for="bq_enable_ordering">فعال بودن سفارش‌گیری</label></th>
                             <td>
-                                <select id="ryns_enable_ordering" name="ryns_enable_ordering">
-                                    <option value="yes" <?php selected(get_option('ryns_enable_ordering', 'yes'), 'yes'); ?>>فعال</option>
-                                    <option value="no" <?php selected(get_option('ryns_enable_ordering', 'yes'), 'no'); ?>>غیرفعال</option>
+                                <select id="bq_enable_ordering" name="bq_enable_ordering">
+                                    <option value="yes" <?php selected(get_option('bq_enable_ordering', 'yes'), 'yes'); ?>>فعال</option>
+                                    <option value="no" <?php selected(get_option('bq_enable_ordering', 'yes'), 'no'); ?>>غیرفعال</option>
                                 </select>
                                 <p class="description">با غیرفعال کردن، کاربران نمی‌توانند سفارش ثبت کنند</p>
                             </td>
                         </tr>
                         <tr>
-                            <th><label for="ryns_enable_delivery">ارسال درب منزل</label></th>
+                            <th><label for="bq_enable_delivery">ارسال درب منزل</label></th>
                             <td>
-                                <select id="ryns_enable_delivery" name="ryns_enable_delivery">
-                                    <option value="yes" <?php selected(get_option('ryns_enable_delivery'), 'yes'); ?>>فعال</option>
-                                    <option value="no" <?php selected(get_option('ryns_enable_delivery'), 'no'); ?>>غیرفعال</option>
+                                <select id="bq_enable_delivery" name="bq_enable_delivery">
+                                    <option value="yes" <?php selected(get_option('bq_enable_delivery'), 'yes'); ?>>فعال</option>
+                                    <option value="no" <?php selected(get_option('bq_enable_delivery'), 'no'); ?>>غیرفعال</option>
                                 </select>
                             </td>
                         </tr>
                         <tr>
-                            <th><label for="ryns_delivery_fee">هزینه ارسال (تومان)</label></th>
-                            <td><input type="number" id="ryns_delivery_fee" name="ryns_delivery_fee" value="<?php echo esc_attr(get_option('ryns_delivery_fee', 0)); ?>" class="small-text"></td>
+                            <th><label for="bq_delivery_fee">هزینه ارسال (تومان)</label></th>
+                            <td><input type="number" id="bq_delivery_fee" name="bq_delivery_fee" value="<?php echo esc_attr(get_option('bq_delivery_fee', 0)); ?>" class="small-text"></td>
                         </tr>
                         <tr>
-                            <th><label for="ryns_free_delivery_min">ارسال رایگان برای سفارشات بالای (تومان)</label></th>
-                            <td><input type="number" id="ryns_free_delivery_min" name="ryns_free_delivery_min" value="<?php echo esc_attr(get_option('ryns_free_delivery_min', 0)); ?>" class="small-text"></td>
+                            <th><label for="bq_free_delivery_min">ارسال رایگان برای سفارشات بالای (تومان)</label></th>
+                            <td><input type="number" id="bq_free_delivery_min" name="bq_free_delivery_min" value="<?php echo esc_attr(get_option('bq_free_delivery_min', 0)); ?>" class="small-text"></td>
                         </tr>
                         <tr>
-                            <th><label for="ryns_min_order_amount">حداقل مبلغ سفارش (تومان)</label></th>
-                            <td><input type="number" id="ryns_min_order_amount" name="ryns_min_order_amount" value="<?php echo esc_attr(get_option('ryns_min_order_amount', 0)); ?>" class="small-text"></td>
+                            <th><label for="bq_min_order_amount">حداقل مبلغ سفارش (تومان)</label></th>
+                            <td><input type="number" id="bq_min_order_amount" name="bq_min_order_amount" value="<?php echo esc_attr(get_option('bq_min_order_amount', 0)); ?>" class="small-text"></td>
                         </tr>
                     </table>
                 </div>
 
-                <div class="ryns-settings-section">
+                <div class="bq-settings-section">
                     <h2>ساعت کاری هفتگی</h2>
                     <p class="description">ساعت‌های باز بودن رستوران در هر روز هفته</p>
                     <?php 
-                    $business_hours = get_option('ryns_business_hours', array());
+                    $business_hours = get_option('bq_business_hours', array());
                     $days_list = array(
                         'saturday' => 'شنبه',
                         'sunday' => 'یکشنبه',
@@ -485,7 +489,7 @@ class Reyhoon_Simple {
                         'friday' => 'جمعه',
                     );
                     ?>
-                    <table class="form-table ryns-hours-table">
+                    <table class="form-table bq-hours-table">
                         <thead>
                             <tr>
                                 <th>روز</th>
@@ -505,41 +509,41 @@ class Reyhoon_Simple {
                             <tr>
                                 <td><strong><?php echo $day_name; ?></strong></td>
                                 <td>
-                                    <select name="ryns_hours[<?php echo $day_key; ?>][is_open]">
+                                    <select name="bq_hours[<?php echo $day_key; ?>][is_open]">
                                         <option value="yes" <?php selected($is_open_day, 'yes'); ?>>باز</option>
                                         <option value="no" <?php selected($is_open_day, 'no'); ?>>تعطیل</option>
                                     </select>
                                 </td>
-                                <td><input type="time" name="ryns_hours[<?php echo $day_key; ?>][open_time]" value="<?php echo esc_attr($day_data['open_time'] ?? '09:00'); ?>"></td>
-                                <td><input type="time" name="ryns_hours[<?php echo $day_key; ?>][close_time]" value="<?php echo esc_attr($day_data['close_time'] ?? '23:00'); ?>"></td>
+                                <td><input type="time" name="bq_hours[<?php echo $day_key; ?>][open_time]" value="<?php echo esc_attr($day_data['open_time'] ?? '09:00'); ?>"></td>
+                                <td><input type="time" name="bq_hours[<?php echo $day_key; ?>][close_time]" value="<?php echo esc_attr($day_data['close_time'] ?? '23:00'); ?>"></td>
                             </tr>
                             <?php endforeach; ?>
                         </tbody>
                     </table>
                 </div>
 
-                <div class="ryns-settings-section">
+                <div class="bq-settings-section">
                     <h2>رنگ‌بندی منو</h2>
                     <table class="form-table">
                         <tr>
-                            <th><label for="ryns_primary_color">رنگ اصلی</label></th>
-                            <td><input type="color" id="ryns_primary_color" name="ryns_primary_color" value="<?php echo esc_attr(get_option('ryns_primary_color', '#036666')); ?>"></td>
+                            <th><label for="bq_primary_color">رنگ اصلی</label></th>
+                            <td><input type="color" id="bq_primary_color" name="bq_primary_color" value="<?php echo esc_attr(get_option('bq_primary_color', '#036666')); ?>"></td>
                         </tr>
                         <tr>
-                            <th><label for="ryns_secondary_color">رنگ ثانویه</label></th>
-                            <td><input type="color" id="ryns_secondary_color" name="ryns_secondary_color" value="<?php echo esc_attr(get_option('ryns_secondary_color', '#ad8b4c')); ?>"></td>
+                            <th><label for="bq_secondary_color">رنگ ثانویه</label></th>
+                            <td><input type="color" id="bq_secondary_color" name="bq_secondary_color" value="<?php echo esc_attr(get_option('bq_secondary_color', '#ad8b4c')); ?>"></td>
                         </tr>
                         <tr>
-                            <th><label for="ryns_bg_color">رنگ پس‌زمینه</label></th>
-                            <td><input type="color" id="ryns_bg_color" name="ryns_bg_color" value="<?php echo esc_attr(get_option('ryns_bg_color', '#1d1a18')); ?>"></td>
+                            <th><label for="bq_bg_color">رنگ پس‌زمینه</label></th>
+                            <td><input type="color" id="bq_bg_color" name="bq_bg_color" value="<?php echo esc_attr(get_option('bq_bg_color', '#1d1a18')); ?>"></td>
                         </tr>
                         <tr>
-                            <th><label for="ryns_card_bg_color">رنگ کارت آیتم‌ها</label></th>
-                            <td><input type="color" id="ryns_card_bg_color" name="ryns_card_bg_color" value="<?php echo esc_attr(get_option('ryns_card_bg_color', '#26211f')); ?>"></td>
+                            <th><label for="bq_card_bg_color">رنگ کارت آیتم‌ها</label></th>
+                            <td><input type="color" id="bq_card_bg_color" name="bq_card_bg_color" value="<?php echo esc_attr(get_option('bq_card_bg_color', '#26211f')); ?>"></td>
                         </tr>
                         <tr>
-                            <th><label for="ryns_text_color">رنگ متن</label></th>
-                            <td><input type="color" id="ryns_text_color" name="ryns_text_color" value="<?php echo esc_attr(get_option('ryns_text_color', '#ffffff')); ?>"></td>
+                            <th><label for="bq_text_color">رنگ متن</label></th>
+                            <td><input type="color" id="bq_text_color" name="bq_text_color" value="<?php echo esc_attr(get_option('bq_text_color', '#ffffff')); ?>"></td>
                         </tr>
                     </table>
                 </div>
@@ -558,11 +562,11 @@ class Reyhoon_Simple {
         }
         
         $fields = array(
-            'ryns_restaurant_name', 'ryns_restaurant_address', 'ryns_restaurant_phone',
-            'ryns_restaurant_logo', 'ryns_primary_color', 'ryns_secondary_color',
-            'ryns_bg_color', 'ryns_card_bg_color', 'ryns_text_color',
-            'ryns_enable_delivery', 'ryns_delivery_fee', 'ryns_free_delivery_min',
-            'ryns_min_order_amount', 'ryns_enable_ordering',
+            'bq_restaurant_name', 'bq_restaurant_address', 'bq_restaurant_phone',
+            'bq_restaurant_logo', 'bq_primary_color', 'bq_secondary_color',
+            'bq_bg_color', 'bq_card_bg_color', 'bq_text_color',
+            'bq_enable_delivery', 'bq_delivery_fee', 'bq_free_delivery_min',
+            'bq_min_order_amount', 'bq_enable_ordering',
         );
         
         foreach ($fields as $field) {
@@ -572,16 +576,16 @@ class Reyhoon_Simple {
         }
 
         // ذخیره ساعت کاری
-        if (isset($_POST['ryns_hours']) && is_array($_POST['ryns_hours'])) {
+        if (isset($_POST['bq_hours']) && is_array($_POST['bq_hours'])) {
             $hours = array();
-            foreach ($_POST['ryns_hours'] as $day => $data) {
+            foreach ($_POST['bq_hours'] as $day => $data) {
                 $hours[sanitize_key($day)] = array(
                     'is_open' => isset($data['is_open']) ? sanitize_text_field($data['is_open']) : 'yes',
                     'open_time' => isset($data['open_time']) ? sanitize_text_field($data['open_time']) : '09:00',
                     'close_time' => isset($data['close_time']) ? sanitize_text_field($data['close_time']) : '23:00',
                 );
             }
-            update_option('ryns_business_hours', $hours);
+            update_option('bq_business_hours', $hours);
         }
         
         echo '<div class="notice notice-success"><p>✅ تنظیمات با موفقیت ذخیره شد.</p></div>';
@@ -590,25 +594,25 @@ class Reyhoon_Simple {
     public function orders_page() {
         $status_filter = isset($_GET['status']) ? sanitize_text_field($_GET['status']) : '';
         ?>
-        <div class="ryns-orders-wrap">
-            <div class="ryns-orders-header">
+        <div class="bq-orders-wrap">
+            <div class="bq-orders-header">
                 <h1>مدیریت سفارشات</h1>
-                <div class="ryns-live-indicator" id="ryns-live-indicator">
-                    <span class="ryns-live-dot"></span>
-                    <span class="ryns-live-text">بررسی خودکار سفارشات جدید...</span>
+                <div class="bq-live-indicator" id="bq-live-indicator">
+                    <span class="bq-live-dot"></span>
+                    <span class="bq-live-text">بررسی خودکار سفارشات جدید...</span>
                 </div>
             </div>
 
             <!-- فیلتر وضعیت -->
-            <div class="ryns-order-filters">
+            <div class="bq-order-filters">
                 <form method="get" action="">
-                    <input type="hidden" name="page" value="reyhoon-simple-orders">
+                    <input type="hidden" name="page" value="boshqab-orders">
                     <select name="status" onchange="this.form.submit()">
                         <option value="">همه سفارشات فعال</option>
-                        <option value="ryns-pending" <?php selected($status_filter, 'ryns-pending'); ?>>در انتظار تایید</option>
-                        <option value="ryns-preparing" <?php selected($status_filter, 'ryns-preparing'); ?>>در حال آماده‌سازی</option>
-                        <option value="ryns-ready" <?php selected($status_filter, 'ryns-ready'); ?>>آماده تحویل</option>
-                        <option value="ryns-delivering" <?php selected($status_filter, 'ryns-delivering'); ?>>در حال ارسال</option>
+                        <option value="bq-pending" <?php selected($status_filter, 'bq-pending'); ?>>در انتظار تایید</option>
+                        <option value="bq-preparing" <?php selected($status_filter, 'bq-preparing'); ?>>در حال آماده‌سازی</option>
+                        <option value="bq-ready" <?php selected($status_filter, 'bq-ready'); ?>>آماده تحویل</option>
+                        <option value="bq-delivering" <?php selected($status_filter, 'bq-delivering'); ?>>در حال ارسال</option>
                         <option value="delivered" <?php selected($status_filter, 'delivered'); ?>>تحویل شده</option>
                         <option value="cancelled" <?php selected($status_filter, 'cancelled'); ?>>لغو شده</option>
                     </select>
@@ -616,22 +620,22 @@ class Reyhoon_Simple {
                 </form>
             </div>
 
-            <div id="ryns-orders-table-container">
+            <div id="bq-orders-table-container">
                 <?php $this->recent_orders_table(100, $status_filter); ?>
             </div>
         </div>
 
         <!-- مودال جزئیات سفارش -->
-        <div id="ryns-order-modal" class="ryns-modal" style="display:none;">
-            <div class="ryns-modal-overlay"></div>
-            <div class="ryns-modal-content">
-                <div class="ryns-modal-header">
-                    <h2>جزئیات سفارش <span id="ryns-modal-order-number"></span></h2>
-                    <button class="ryns-modal-close">&times;</button>
+        <div id="bq-order-modal" class="bq-modal" style="display:none;">
+            <div class="bq-modal-overlay"></div>
+            <div class="bq-modal-content">
+                <div class="bq-modal-header">
+                    <h2>جزئیات سفارش <span id="bq-modal-order-number"></span></h2>
+                    <button class="bq-modal-close">&times;</button>
                 </div>
-                <div class="ryns-modal-body" id="ryns-modal-body">
-                    <div class="ryns-loading" style="text-align:center;padding:40px;">
-                        <div class="ryns-spinner"></div>
+                <div class="bq-modal-body" id="bq-modal-body">
+                    <div class="bq-loading" style="text-align:center;padding:40px;">
+                        <div class="bq-spinner"></div>
                         <p>در حال بارگذاری...</p>
                     </div>
                 </div>
@@ -641,12 +645,12 @@ class Reyhoon_Simple {
     }
 
     private function recent_orders_table($limit = 10, $status_filter = '') {
-        $statuses = array('ryns-pending', 'ryns-preparing', 'ryns-ready', 'ryns-delivering', 'processing', 'on-hold');
+        $statuses = array('bq-pending', 'bq-preparing', 'bq-ready', 'bq-delivering', 'processing', 'on-hold');
         if (!empty($status_filter)) {
             $statuses = array($status_filter);
         }
         if ($status_filter === 'delivered') {
-            $statuses = array('ryns-delivered');
+            $statuses = array('bq-delivered');
         }
         if ($status_filter === 'cancelled') {
             $statuses = array('cancelled');
@@ -664,8 +668,8 @@ class Reyhoon_Simple {
             return;
         }
         ?>
-        <div class="ryns-orders-table-wrap">
-            <table class="ryns-orders-table">
+        <div class="bq-orders-table-wrap">
+            <table class="bq-orders-table">
                 <thead>
                     <tr>
                         <th>شماره سفارش</th>
@@ -680,18 +684,18 @@ class Reyhoon_Simple {
                     <?php foreach ($orders as $order): 
                         $status = $order->get_status();
                         $status_labels = array(
-                            'ryns-pending' => 'در انتظار تایید',
-                            'ryns-preparing' => 'در حال آماده‌سازی',
-                            'ryns-ready' => 'آماده تحویل',
-                            'ryns-delivering' => 'در حال ارسال',
-                            'ryns-delivered' => 'تحویل شده',
+                            'bq-pending' => 'در انتظار تایید',
+                            'bq-preparing' => 'در حال آماده‌سازی',
+                            'bq-ready' => 'آماده تحویل',
+                            'bq-delivering' => 'در حال ارسال',
+                            'bq-delivered' => 'تحویل شده',
                             'processing' => 'در حال پردازش',
                             'on-hold' => 'در انتظار',
                             'cancelled' => 'لغو شده',
                         );
-                        $status_class = str_replace('ryns-', '', $status);
+                        $status_class = str_replace('bq-', '', $status);
                     ?>
-                    <tr class="ryns-order-row <?php echo ($status === 'ryns-pending') ? 'ryns-row-new' : ''; ?>" data-order-id="<?php echo $order->get_id(); ?>">
+                    <tr class="bq-order-row <?php echo ($status === 'bq-pending') ? 'bq-row-new' : ''; ?>" data-order-id="<?php echo $order->get_id(); ?>">
                         <td>#<?php echo $order->get_order_number(); ?></td>
                         <td>
                             <?php echo esc_html($order->get_billing_first_name() . ' ' . $order->get_billing_last_name()); ?>
@@ -699,18 +703,18 @@ class Reyhoon_Simple {
                         </td>
                         <td><?php echo wc_format_datetime($order->get_date_created()); ?></td>
                         <td><?php echo wc_price($order->get_total()); ?></td>
-                        <td><span class="ryns-status ryns-status-<?php echo $status_class; ?>"><?php echo isset($status_labels[$status]) ? $status_labels[$status] : $status; ?></span></td>
+                        <td><span class="bq-status bq-status-<?php echo $status_class; ?>"><?php echo isset($status_labels[$status]) ? $status_labels[$status] : $status; ?></span></td>
                         <td>
-                            <select class="ryns-order-status" data-order-id="<?php echo $order->get_id(); ?>">
+                            <select class="bq-order-status" data-order-id="<?php echo $order->get_id(); ?>">
                                 <option value="">تغییر وضعیت...</option>
-                                <option value="ryns-pending" <?php selected($status, 'ryns-pending'); ?>>در انتظار تایید</option>
-                                <option value="ryns-preparing" <?php selected($status, 'ryns-preparing'); ?>>در حال آماده‌سازی</option>
-                                <option value="ryns-ready" <?php selected($status, 'ryns-ready'); ?>>آماده تحویل</option>
-                                <option value="ryns-delivering" <?php selected($status, 'ryns-delivering'); ?>>در حال ارسال</option>
-                                <option value="ryns-delivered" <?php selected($status, 'ryns-delivered'); ?>>تحویل شده</option>
+                                <option value="bq-pending" <?php selected($status, 'bq-pending'); ?>>در انتظار تایید</option>
+                                <option value="bq-preparing" <?php selected($status, 'bq-preparing'); ?>>در حال آماده‌سازی</option>
+                                <option value="bq-ready" <?php selected($status, 'bq-ready'); ?>>آماده تحویل</option>
+                                <option value="bq-delivering" <?php selected($status, 'bq-delivering'); ?>>در حال ارسال</option>
+                                <option value="bq-delivered" <?php selected($status, 'bq-delivered'); ?>>تحویل شده</option>
                                 <option value="cancelled" <?php selected($status, 'cancelled'); ?>>لغو شده</option>
                             </select>
-                            <button class="button button-small ryns-view-order" data-order-id="<?php echo $order->get_id(); ?>">جزئیات</button>
+                            <button class="button button-small bq-view-order" data-order-id="<?php echo $order->get_id(); ?>">جزئیات</button>
                             <a href="<?php echo admin_url('post.php?post=' . $order->get_id() . '&action=edit'); ?>" class="button button-small" target="_blank">ووکامرس</a>
                         </td>
                     </tr>
@@ -733,13 +737,13 @@ class Reyhoon_Simple {
     // ============ AJAX HANDLERS ============
 
     public function ajax_save_settings() {
-        check_ajax_referer('ryns_nonce', 'nonce');
+        check_ajax_referer('bq_nonce', 'nonce');
         $this->save_settings();
         wp_send_json_success();
     }
 
     public function ajax_update_order_status() {
-        check_ajax_referer('ryns_nonce', 'nonce');
+        check_ajax_referer('bq_nonce', 'nonce');
         
         $order_id = intval($_POST['order_id']);
         $status = sanitize_text_field($_POST['status']);
@@ -754,11 +758,11 @@ class Reyhoon_Simple {
     }
 
     public function ajax_toggle_restaurant() {
-        check_ajax_referer('ryns_nonce', 'nonce');
+        check_ajax_referer('bq_nonce', 'nonce');
         
-        $current = get_option('ryns_is_open', 'yes');
+        $current = get_option('bq_is_open', 'yes');
         $new = ($current === 'yes') ? 'no' : 'yes';
-        update_option('ryns_is_open', $new);
+        update_option('bq_is_open', $new);
         
         $message = ($new === 'yes') ? '✅ رستوران باز شد' : '🔴 رستوران بسته شد';
         
@@ -769,7 +773,7 @@ class Reyhoon_Simple {
     }
 
     public function ajax_check_new_orders() {
-        check_ajax_referer('ryns_nonce', 'nonce');
+        check_ajax_referer('bq_nonce', 'nonce');
         
         $last_check = isset($_POST['last_order_id']) ? intval($_POST['last_order_id']) : 0;
         
@@ -777,7 +781,7 @@ class Reyhoon_Simple {
             'limit' => 5,
             'orderby' => 'date',
             'order' => 'DESC',
-            'status' => array('ryns-pending', 'processing'),
+            'status' => array('bq-pending', 'processing'),
             'type' => 'shop_order',
         ));
 
@@ -801,7 +805,7 @@ class Reyhoon_Simple {
                     'total' => wc_price($order->get_total()),
                     'date' => wc_format_datetime($order->get_date_created()),
                     'status' => $status,
-                    'status_label' => ($status === 'ryns-pending') ? 'در انتظار تایید' : 'در حال پردازش',
+                    'status_label' => ($status === 'bq-pending') ? 'در انتظار تایید' : 'در حال پردازش',
                     'items_count' => $order->get_item_count(),
                 );
             }
@@ -818,7 +822,7 @@ class Reyhoon_Simple {
     }
 
     public function ajax_get_order_detail() {
-        check_ajax_referer('ryns_nonce', 'nonce');
+        check_ajax_referer('bq_nonce', 'nonce');
         
         $order_id = intval($_POST['order_id']);
         $order = wc_get_order($order_id);
@@ -860,7 +864,7 @@ class Reyhoon_Simple {
     }
 
     public function ajax_get_categories() {
-        check_ajax_referer('ryns_nonce', 'nonce');
+        check_ajax_referer('bq_nonce', 'nonce');
         
         $categories = get_terms(array(
             'taxonomy' => 'product_cat',
@@ -909,7 +913,7 @@ class Reyhoon_Simple {
     }
 
     public function ajax_check_restaurant_status() {
-        check_ajax_referer('ryns_nonce', 'nonce');
+        check_ajax_referer('bq_nonce', 'nonce');
         $is_open = $this->is_restaurant_open();
         wp_send_json_success(array(
             'is_open' => $is_open,
@@ -918,4 +922,4 @@ class Reyhoon_Simple {
     }
 }
 
-Reyhoon_Simple::instance();
+Boshqab_Plugin::instance();
