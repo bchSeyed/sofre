@@ -1,22 +1,27 @@
 <?php
 /**
  * Plugin Name: سفره - مدیریت سفارشات رستوران
- * Plugin URI: https://example.com/sofre
- * Description: افزونه مدیریت منو و سفارشات رستوران — سفره
- * Version: 1.1.0
+ * Plugin URI: https://github.com/bchSeyed/sofre
+ * Description: افزونه مستقل مدیریت منو و سفارشات رستوران — سفره
+ * Version: 1.1.1
  * Author: Sofre
  * Text Domain: sofre
  * Domain Path: /languages
- * Requires WooCommerce: true
+ * Requires at least: 5.8
+ * Requires PHP: 7.4
+ * Requires Plugins: woocommerce
+ * WC requires at least: 5.0
+ * WC tested up to: 9.6
  */
 
 if (!defined('ABSPATH')) {
     exit;
 }
 
-define('SF_VERSION', '1.1.0');
+define('SF_VERSION', '1.1.1');
 define('SF_PATH', plugin_dir_path(__FILE__));
 define('SF_URL', plugin_dir_url(__FILE__));
+define('SF_BASENAME', plugin_basename(__FILE__));
 
 class Sofre_Plugin {
 
@@ -30,8 +35,31 @@ class Sofre_Plugin {
     }
 
     public function __construct() {
-        add_action('plugins_loaded', array($this, 'init'));
         register_activation_hook(__FILE__, array($this, 'activate'));
+        register_deactivation_hook(__FILE__, array($this, 'deactivate'));
+        add_action('init', array($this, 'migrate_legacy_entries'), 1);
+        add_action('init', array($this, 'init'));
+    }
+
+    public function deactivate() {
+        flush_rewrite_rules();
+    }
+
+    /**
+     * حذف ورودی‌های افزونه‌های قدیمی (boshqab/reyhoon) از لیست فعال‌ها
+     */
+    public function migrate_legacy_entries() {
+        $active = get_option('active_plugins', array());
+        if (!is_array($active)) {
+            return;
+        }
+
+        $legacy = array('boshqab/boshqab.php', 'reyhoon/reyhoon.php');
+        $cleaned = array_values(array_diff($active, $legacy));
+
+        if ($cleaned !== $active) {
+            update_option('active_plugins', $cleaned);
+        }
     }
 
     public function activate() {
@@ -79,6 +107,10 @@ class Sofre_Plugin {
     }
 
     public function init() {
+        if (!class_exists('WooCommerce')) {
+            return;
+        }
+
         $this->includes();
         
         add_action('admin_menu', array($this, 'admin_menu'));
@@ -99,6 +131,7 @@ class Sofre_Plugin {
     }
 
     private function includes() {
+        require_once SF_PATH . 'includes/class-template.php';
         require_once SF_PATH . 'includes/class-menu.php';
         require_once SF_PATH . 'includes/class-orders.php';
         require_once SF_PATH . 'includes/class-frontend.php';
@@ -106,6 +139,37 @@ class Sofre_Plugin {
         require_once SF_PATH . 'includes/class-drawer.php';
         require_once SF_PATH . 'includes/class-services.php';
         require_once SF_PATH . 'includes/class-shipping.php';
+    }
+
+    public static function is_menu_context() {
+        if (!is_singular('page')) {
+            return false;
+        }
+
+        $menu_page_id = (int) get_option('sf_menu_page_id');
+        if ($menu_page_id && is_page($menu_page_id)) {
+            return true;
+        }
+
+        global $post;
+        return ($post && has_shortcode($post->post_content, 'sofre_menu'));
+    }
+
+    public static function is_plugin_frontend_context() {
+        if (self::is_menu_context()) {
+            return true;
+        }
+
+        if (function_exists('is_checkout') && (is_checkout() || is_account_page())) {
+            return true;
+        }
+
+        global $post;
+        if ($post && (has_shortcode($post->post_content, 'sofre_otp') || has_shortcode($post->post_content, 'sofre_services'))) {
+            return true;
+        }
+
+        return false;
     }
 
     private function create_default_pages() {
@@ -182,22 +246,26 @@ class Sofre_Plugin {
     }
 
     public function frontend_assets() {
-        global $post;
-        $menu_page_id = get_option('sf_menu_page_id');
-        $is_menu_page = ($menu_page_id && is_page($menu_page_id));
-        $has_shortcode = ($post && has_shortcode($post->post_content, 'sofre_menu'));
-        
-        if (!$is_menu_page && !$has_shortcode) {
+        if (!self::is_plugin_frontend_context()) {
             return;
         }
-        
+
+        $is_menu = self::is_menu_context();
+
         wp_enqueue_style('sf-frontend', SF_URL . 'assets/frontend.css', array(), SF_VERSION);
         wp_enqueue_script('sf-frontend', SF_URL . 'assets/frontend.js', array('jquery'), SF_VERSION, true);
+
+        if ($is_menu) {
+            wp_enqueue_script('wc-cart-fragments');
+        }
+
         wp_localize_script('sf-frontend', 'sf_ajax', array(
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('sf_nonce'),
-            'cart_url' => wc_get_cart_url(),
-            'restaurant_open' => $this->is_restaurant_open(),
+            'cart_url' => function_exists('wc_get_cart_url') ? wc_get_cart_url() : home_url('/cart/'),
+            'checkout_url' => function_exists('wc_get_checkout_url') ? wc_get_checkout_url() : home_url('/checkout/'),
+            'restaurant_open' => $is_menu ? $this->is_restaurant_open() : true,
+            'is_menu' => $is_menu,
         ));
     }
 
@@ -324,7 +392,7 @@ class Sofre_Plugin {
     // ============ PAGES ============
 
     public function dashboard_page() {
-        $orders_count = wc_orders_count('sf-pending') + wc_orders_count('processing');
+        $orders_count = $this->count_orders_by_status(array('sf-pending', 'processing'));
         $menu_items = wp_count_posts('product')->publish;
         $today_orders = $this->get_today_orders_count();
         $is_open = $this->is_restaurant_open();
@@ -725,6 +793,20 @@ class Sofre_Plugin {
         <?php
     }
 
+    private function count_orders_by_status($statuses) {
+        if (!function_exists('wc_get_orders')) {
+            return 0;
+        }
+
+        $orders = wc_get_orders(array(
+            'status' => (array) $statuses,
+            'limit' => -1,
+            'return' => 'ids',
+        ));
+
+        return is_array($orders) ? count($orders) : 0;
+    }
+
     private function get_today_orders_count() {
         $orders = wc_get_orders(array(
             'date_created' => date('Y-m-d', current_time('timestamp')),
@@ -922,4 +1004,25 @@ class Sofre_Plugin {
     }
 }
 
-Sofre_Plugin::instance();
+function sofre_wc_missing_notice() {
+    if (!current_user_can('activate_plugins')) {
+        return;
+    }
+    echo '<div class="notice notice-error"><p><strong>سفره:</strong> افزونه ووکامرس باید نصب و فعال باشد.</p></div>';
+}
+
+function sofre_bootstrap() {
+    Sofre_Plugin::instance();
+
+    if (!class_exists('WooCommerce')) {
+        add_action('admin_notices', 'sofre_wc_missing_notice');
+    }
+}
+
+add_action('before_woocommerce_init', function () {
+    if (class_exists('\Automattic\WooCommerce\Utilities\FeaturesUtil')) {
+        \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility('custom_order_tables', __FILE__, true);
+    }
+});
+
+add_action('plugins_loaded', 'sofre_bootstrap', 20);

@@ -156,19 +156,28 @@ class Sofre_Orders {
      * اضافه کردن متاباکس وضعیت سفارش در صفحه ادیت ووکامرس
      */
     public function add_order_meta_box() {
+        $screen = function_exists('wc_get_page_screen_id') ? wc_get_page_screen_id('shop-order') : 'shop_order';
+
         add_meta_box(
             'sf_order_status_box',
             'وضعیت سفره',
             array($this, 'render_order_meta_box'),
-            'shop_order',
+            $screen,
             'side',
             'default'
         );
     }
 
-    public function render_order_meta_box($post) {
-        $order = wc_get_order($post->ID);
-        if (!$order) return;
+    public function render_order_meta_box($post_or_order) {
+        if ($post_or_order instanceof WC_Order) {
+            $order = $post_or_order;
+        } else {
+            $order_id = is_object($post_or_order) ? $post_or_order->ID : 0;
+            $order = wc_get_order($order_id);
+        }
+        if (!$order) {
+            return;
+        }
         
         $current_status = $order->get_status();
         ?>

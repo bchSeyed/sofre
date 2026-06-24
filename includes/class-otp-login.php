@@ -35,10 +35,15 @@ class Sofre_OTP_Login {
     }
 
     public function frontend_assets() {
-        if (!is_checkout() && !is_account_page()) {
+        global $post;
+        $has_shortcode = ($post && has_shortcode($post->post_content, 'sofre_otp'));
+        if (!is_checkout() && !is_account_page() && !$has_shortcode) {
             return;
         }
-        
+        if (!wp_style_is('sf-frontend', 'enqueued')) {
+            return;
+        }
+
         wp_add_inline_style('sf-frontend', $this->get_otp_styles());
         wp_add_inline_script('sf-frontend', $this->get_otp_script(), 'before');
     }
@@ -444,6 +449,7 @@ class Sofre_OTP_Login {
         
         $phone = sanitize_text_field($_POST['phone'] ?? '');
         $code = sanitize_text_field($_POST['code'] ?? '');
+        $hashed = '';
         
         if (empty($phone) || empty($code)) {
             wp_send_json_error(array('message' => 'اطلاعات ناقص است.'));
@@ -510,7 +516,9 @@ class Sofre_OTP_Login {
         
         // پاکسازی
         delete_option('sf_otp_pending_' . $phone);
-        delete_transient('sf_otp_' . $hashed ?? '');
+        if (!empty($hashed)) {
+            delete_transient('sf_otp_' . $hashed);
+        }
         delete_option('sf_otp_debug_' . $phone);
         
         wp_send_json_success(array(

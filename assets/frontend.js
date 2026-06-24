@@ -1,7 +1,11 @@
 jQuery(document).ready(function($) {
-    
+
+    if (typeof sf_ajax === 'undefined' || !sf_ajax.is_menu) {
+        return;
+    }
+
     var isRestaurantOpen = true;
-    
+
     // بررسی وضعیت رستوران
     $.post(sf_ajax.ajax_url, {
         action: 'sf_check_restaurant_status',

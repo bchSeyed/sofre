@@ -19,9 +19,8 @@ class Sofre_Drawer {
     }
 
     public function __construct() {
-        add_action('wp_footer', array($this, 'add_drawer'));
-        add_action('wp_enqueue_scripts', array($this, 'frontend_assets'));
-        
+        add_action('wp', array($this, 'boot'));
+
         // Ajax handlers
         add_action('wp_ajax_sf_drawer_update_qty', array($this, 'ajax_update_quantity'));
         add_action('wp_ajax_nopriv_sf_drawer_update_qty', array($this, 'ajax_update_quantity'));
@@ -36,7 +35,20 @@ class Sofre_Drawer {
         add_filter('woocommerce_add_to_cart_fragments', array($this, 'cart_fragments'));
     }
 
+    public function boot() {
+        if (!Sofre_Plugin::is_menu_context()) {
+            return;
+        }
+
+        add_action('wp_footer', array($this, 'add_drawer'));
+        add_action('wp_enqueue_scripts', array($this, 'frontend_assets'), 25);
+    }
+
     public function frontend_assets() {
+        if (!wp_style_is('sf-frontend', 'enqueued')) {
+            return;
+        }
+
         wp_add_inline_style('sf-frontend', $this->get_drawer_styles());
         wp_add_inline_script('sf-frontend', $this->get_drawer_script(), 'before');
     }
@@ -499,6 +511,10 @@ class Sofre_Drawer {
 
     public function ajax_get_drawer_content() {
         check_ajax_referer('sf_nonce', 'nonce');
+
+        if (!WC()->cart) {
+            wp_send_json_error();
+        }
         
         ob_start();
         

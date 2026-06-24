@@ -47,7 +47,12 @@ class Sofre_Services {
     }
 
     public function frontend_assets() {
-        if (!is_checkout() && !has_shortcode(get_post()->post_content ?? '', 'sofre_services')) {
+        global $post;
+        $has_shortcode = ($post && has_shortcode($post->post_content, 'sofre_services'));
+        if (!is_checkout() && !$has_shortcode) {
+            return;
+        }
+        if (!wp_style_is('sf-frontend', 'enqueued')) {
             return;
         }
         wp_add_inline_style('sf-frontend', $this->get_services_styles());
@@ -231,7 +236,7 @@ class Sofre_Services {
     }
 
     public function checkout_service_selector() {
-        if (is_user_logged_in() || WC()->cart->is_empty()) {
+        if (!WC()->cart || WC()->cart->is_empty()) {
             return;
         }
         echo $this->render_services_selector();
