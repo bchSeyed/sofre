@@ -1,7 +1,7 @@
 <?php if (!defined('ABSPATH')) exit;
-class Boshqab_Shipping_Serving extends WC_Shipping_Method {
+class Sofre_Shipping_Serving extends WC_Shipping_Method {
     public function __construct($instance_id = 0) {
-        $this->id = 'bq_serving';
+        $this->id = 'sf_serving';
         $this->instance_id = absint($instance_id);
         $this->method_title = 'صرف در رستوران';
         $this->method_description = 'مشتری سفارش را در رستوران صرف می‌کند';

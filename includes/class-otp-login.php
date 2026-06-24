@@ -8,7 +8,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class Boshqab_OTP_Login {
+class Sofre_OTP_Login {
 
     private static $instance = null;
 
@@ -20,12 +20,12 @@ class Boshqab_OTP_Login {
     }
 
     public function __construct() {
-        add_shortcode('boshqab_otp', array($this, 'render_otp_form'));
+        add_shortcode('sofre_otp', array($this, 'render_otp_form'));
         
         // Ajax handlers
-        add_action('wp_ajax_nopriv_bq_otp_send_code', array($this, 'ajax_send_otp_code'));
-        add_action('wp_ajax_nopriv_bq_otp_verify_code', array($this, 'ajax_verify_otp_code'));
-        add_action('wp_ajax_nopriv_bq_otp_login', array($this, 'ajax_otp_login'));
+        add_action('wp_ajax_nopriv_sf_otp_send_code', array($this, 'ajax_send_otp_code'));
+        add_action('wp_ajax_nopriv_sf_otp_verify_code', array($this, 'ajax_verify_otp_code'));
+        add_action('wp_ajax_nopriv_sf_otp_login', array($this, 'ajax_otp_login'));
         
         // حذف لاگین ووکامرس از checkout وقتی OTP فعاله
         add_action('wp_enqueue_scripts', array($this, 'frontend_assets'));
@@ -39,13 +39,13 @@ class Boshqab_OTP_Login {
             return;
         }
         
-        wp_add_inline_style('bq-frontend', $this->get_otp_styles());
-        wp_add_inline_script('bq-frontend', $this->get_otp_script(), 'before');
+        wp_add_inline_style('sf-frontend', $this->get_otp_styles());
+        wp_add_inline_script('sf-frontend', $this->get_otp_script(), 'before');
     }
 
     private function get_otp_styles() {
         return '
-        .bq-otp-overlay {
+        .sf-otp-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0,0,0,0.6);
@@ -54,7 +54,7 @@ class Boshqab_OTP_Login {
             align-items: center;
             justify-content: center;
         }
-        .bq-otp-drawer {
+        .sf-otp-drawer {
             background: #fff;
             border-radius: 20px 20px 0 0;
             padding: 30px 24px;
@@ -69,17 +69,17 @@ class Boshqab_OTP_Login {
             direction: rtl;
             text-align: center;
         }
-        .bq-otp-drawer h2 {
+        .sf-otp-drawer h2 {
             font-size: 20px;
             color: #1d1a18;
             margin-bottom: 8px;
         }
-        .bq-otp-drawer p {
+        .sf-otp-drawer p {
             font-size: 14px;
             color: #555;
             margin-bottom: 24px;
         }
-        .bq-otp-input {
+        .sf-otp-input {
             width: 100%;
             padding: 14px 16px;
             border: 2px solid #e0e0e0;
@@ -90,11 +90,11 @@ class Boshqab_OTP_Login {
             direction: ltr;
             transition: border-color 0.2s;
         }
-        .bq-otp-input:focus {
+        .sf-otp-input:focus {
             border-color: #036666;
             outline: none;
         }
-        .bq-otp-btn {
+        .sf-otp-btn {
             width: 100%;
             padding: 14px;
             background: #036666;
@@ -106,46 +106,46 @@ class Boshqab_OTP_Login {
             cursor: pointer;
             transition: background 0.2s;
         }
-        .bq-otp-btn:hover {
+        .sf-otp-btn:hover {
             background: #024d4d;
         }
-        .bq-otp-btn:disabled {
+        .sf-otp-btn:disabled {
             background: #999;
             cursor: not-allowed;
         }
-        .bq-otp-error {
+        .sf-otp-error {
             color: #f44336;
             font-size: 13px;
             margin-top: 8px;
             display: none;
         }
-        .bq-otp-success {
+        .sf-otp-success {
             color: #4CAF50;
             font-size: 13px;
             margin-top: 8px;
             display: none;
         }
-        .bq-otp-loader {
+        .sf-otp-loader {
             display: none;
             width: 20px;
             height: 20px;
             border: 2px solid rgba(255,255,255,0.3);
             border-top-color: #fff;
             border-radius: 50%;
-            animation: bq-spin 0.6s linear infinite;
+            animation: sf-spin 0.6s linear infinite;
             margin: 0 auto;
         }
-        .bq-otp-alternate {
+        .sf-otp-alternate {
             margin-top: 16px;
             font-size: 13px;
             color: #888;
         }
-        .bq-otp-alternate a {
+        .sf-otp-alternate a {
             color: #036666;
             text-decoration: underline;
             cursor: pointer;
         }
-        .bq-otp-back {
+        .sf-otp-back {
             display: block;
             margin-top: 12px;
             color: #888;
@@ -153,17 +153,17 @@ class Boshqab_OTP_Login {
             cursor: pointer;
             text-decoration: none;
         }
-        .bq-otp-back:hover {
+        .sf-otp-back:hover {
             color: #555;
         }
-        .bq-otp-input-group {
+        .sf-otp-input-group {
             display: flex;
             gap: 8px;
             direction: ltr;
             justify-content: center;
             margin-bottom: 16px;
         }
-        .bq-otp-digit {
+        .sf-otp-digit {
             width: 48px;
             height: 56px;
             border: 2px solid #e0e0e0;
@@ -173,18 +173,18 @@ class Boshqab_OTP_Login {
             transition: border-color 0.2s;
             font-family: monospace;
         }
-        .bq-otp-digit:focus {
+        .sf-otp-digit:focus {
             border-color: #036666;
             outline: none;
         }
-        .bq-otp-resend {
+        .sf-otp-resend {
             font-size: 13px;
             color: #036666;
             cursor: pointer;
             margin-top: 8px;
             display: inline-block;
         }
-        .bq-otp-resend:disabled {
+        .sf-otp-resend:disabled {
             color: #999;
             cursor: not-allowed;
         }
@@ -195,26 +195,26 @@ class Boshqab_OTP_Login {
         return '
         jQuery(document).ready(function($) {
             // ارسال درخواست کد OTP
-            $(document).on("click", ".bq-otp-send-btn", function() {
-                var phone = $("#bq-otp-phone").val();
+            $(document).on("click", ".sf-otp-send-btn", function() {
+                var phone = $("#sf-otp-phone").val();
                 var btn = $(this);
-                var loader = btn.siblings(".bq-otp-loader");
-                var error = $("#bq-otp-error");
+                var loader = btn.siblings(".sf-otp-loader");
+                var error = $("#sf-otp-error");
                 
                 error.hide();
                 btn.prop("disabled", true);
                 loader.show();
                 
-                $.post(bq_ajax.ajax_url, {
-                    action: "bq_otp_send_code",
+                $.post(sf_ajax.ajax_url, {
+                    action: "sf_otp_send_code",
                     phone: phone,
-                    nonce: bq_ajax.nonce
+                    nonce: sf_ajax.nonce
                 }, function(response) {
                     loader.hide();
                     if (response.success) {
-                        $("#bq-otp-step-1").hide();
-                        $("#bq-otp-step-2").show();
-                        $("#bq-otp-phone-display").text(phone);
+                        $("#sf-otp-step-1").hide();
+                        $("#sf-otp-step-2").show();
+                        $("#sf-otp-phone-display").text(phone);
                         startResendTimer();
                     } else {
                         btn.prop("disabled", false);
@@ -228,29 +228,29 @@ class Boshqab_OTP_Login {
             });
             
             // تایید کد OTP
-            $(document).on("click", ".bq-otp-verify-btn", function() {
+            $(document).on("click", ".sf-otp-verify-btn", function() {
                 var code = "";
-                $(".bq-otp-digit").each(function() {
+                $(".sf-otp-digit").each(function() {
                     code += $(this).val();
                 });
-                var phone = $("#bq-otp-phone").val();
+                var phone = $("#sf-otp-phone").val();
                 var btn = $(this);
-                var loader = btn.siblings(".bq-otp-loader");
-                var error = $("#bq-otp-error-2");
+                var loader = btn.siblings(".sf-otp-loader");
+                var error = $("#sf-otp-error-2");
                 
                 error.hide();
                 btn.prop("disabled", true);
                 loader.show();
                 
-                $.post(bq_ajax.ajax_url, {
-                    action: "bq_otp_verify_code",
+                $.post(sf_ajax.ajax_url, {
+                    action: "sf_otp_verify_code",
                     phone: phone,
                     code: code,
-                    nonce: bq_ajax.nonce
+                    nonce: sf_ajax.nonce
                 }, function(response) {
                     loader.hide();
                     if (response.success) {
-                        $("#bq-otp-success-2").text("ورود موفق. در حال انتقال...").show();
+                        $("#sf-otp-success-2").text("ورود موفق. در حال انتقال...").show();
                         window.location.reload();
                     } else {
                         btn.prop("disabled", false);
@@ -264,48 +264,48 @@ class Boshqab_OTP_Login {
             });
             
             // حرکت خودکار بین فیلدهای OTP
-            $(document).on("input", ".bq-otp-digit", function() {
+            $(document).on("input", ".sf-otp-digit", function() {
                 if ($(this).val().length > 0) {
-                    $(this).next(".bq-otp-digit").focus();
+                    $(this).next(".sf-otp-digit").focus();
                 }
             });
             
-            $(document).on("keydown", ".bq-otp-digit", function(e) {
+            $(document).on("keydown", ".sf-otp-digit", function(e) {
                 if (e.key === "Backspace" && $(this).val().length === 0) {
-                    $(this).prev(".bq-otp-digit").focus();
+                    $(this).prev(".sf-otp-digit").focus();
                 }
             });
             
             // ارسال مجدد کد
-            $(document).on("click", ".bq-otp-resend:not(:disabled)", function() {
-                $("#bq-otp-step-2").hide();
-                $("#bq-otp-step-1").show();
-                $(".bq-otp-send-btn").prop("disabled", false);
+            $(document).on("click", ".sf-otp-resend:not(:disabled)", function() {
+                $("#sf-otp-step-2").hide();
+                $("#sf-otp-step-1").show();
+                $(".sf-otp-send-btn").prop("disabled", false);
             });
             
             function startResendTimer() {
                 var timeLeft = 120;
-                $(".bq-otp-resend").prop("disabled", true);
+                $(".sf-otp-resend").prop("disabled", true);
                 var timer = setInterval(function() {
                     timeLeft--;
-                    $(".bq-otp-resend-text").text("ارسال مجدد تا " + timeLeft + " ثانیه دیگر");
+                    $(".sf-otp-resend-text").text("ارسال مجدد تا " + timeLeft + " ثانیه دیگر");
                     if (timeLeft <= 0) {
                         clearInterval(timer);
-                        $(".bq-otp-resend").prop("disabled", false);
-                        $(".bq-otp-resend-text").text("ارسال مجدد کد");
+                        $(".sf-otp-resend").prop("disabled", false);
+                        $(".sf-otp-resend-text").text("ارسال مجدد کد");
                     }
                 }, 1000);
             }
             
             // بستن فرم OTP
-            $(document).on("click", ".bq-otp-overlay", function() {
+            $(document).on("click", ".sf-otp-overlay", function() {
                 $(this).remove();
-                $(".bq-otp-drawer").remove();
+                $(".sf-otp-drawer").remove();
             });
             
             // لینک ورود با گذرواژه
-            $(document).on("click", ".bq-otp-password-link", function() {
-                $(".bq-otp-drawer, .bq-otp-overlay").remove();
+            $(document).on("click", ".sf-otp-password-link", function() {
+                $(".sf-otp-drawer, .sf-otp-overlay").remove();
                 $(".woocommerce-form-login").show();
             });
         });
@@ -319,47 +319,47 @@ class Boshqab_OTP_Login {
         
         ob_start();
         ?>
-        <div class="bq-otp-overlay"></div>
-        <div class="bq-otp-drawer">
+        <div class="sf-otp-overlay"></div>
+        <div class="sf-otp-drawer">
             <h2>ورود / ثبت‌نام</h2>
             <p>شماره موبایل خود را وارد کنید</p>
             
             <!-- مرحله ۱: وارد کردن شماره موبایل -->
-            <div id="bq-otp-step-1">
-                <input type="tel" id="bq-otp-phone" class="bq-otp-input" 
+            <div id="sf-otp-step-1">
+                <input type="tel" id="sf-otp-phone" class="sf-otp-input" 
                        placeholder="۰۹۱۲۳۴۵۶۷۸۹" maxlength="11" dir="ltr" 
                        value="<?php echo isset($_GET['phone']) ? esc_attr($_GET['phone']) : ''; ?>">
-                <button class="bq-otp-btn bq-otp-send-btn">
-                    <span class="bq-otp-btn-text">ارسال کد تأیید</span>
-                    <span class="bq-otp-loader"></span>
+                <button class="sf-otp-btn sf-otp-send-btn">
+                    <span class="sf-otp-btn-text">ارسال کد تأیید</span>
+                    <span class="sf-otp-loader"></span>
                 </button>
-                <div id="bq-otp-error" class="bq-otp-error"></div>
+                <div id="sf-otp-error" class="sf-otp-error"></div>
                 
                 <?php if (class_exists('WooCommerce')): ?>
-                <div class="bq-otp-alternate">
-                    <a class="bq-otp-password-link">ورود با نام کاربری و گذرواژه</a>
+                <div class="sf-otp-alternate">
+                    <a class="sf-otp-password-link">ورود با نام کاربری و گذرواژه</a>
                 </div>
                 <?php endif; ?>
             </div>
             
             <!-- مرحله ۲: وارد کردن کد تأیید -->
-            <div id="bq-otp-step-2" style="display:none;">
-                <p>کد تأیید به شماره <strong id="bq-otp-phone-display"></strong> ارسال شد</p>
-                <div class="bq-otp-input-group">
-                    <input type="text" class="bq-otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]">
-                    <input type="text" class="bq-otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]">
-                    <input type="text" class="bq-otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]">
-                    <input type="text" class="bq-otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]">
+            <div id="sf-otp-step-2" style="display:none;">
+                <p>کد تأیید به شماره <strong id="sf-otp-phone-display"></strong> ارسال شد</p>
+                <div class="sf-otp-input-group">
+                    <input type="text" class="sf-otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                    <input type="text" class="sf-otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                    <input type="text" class="sf-otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                    <input type="text" class="sf-otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]">
                 </div>
-                <button class="bq-otp-btn bq-otp-verify-btn">
-                    <span class="bq-otp-btn-text">تأیید کد</span>
-                    <span class="bq-otp-loader"></span>
+                <button class="sf-otp-btn sf-otp-verify-btn">
+                    <span class="sf-otp-btn-text">تأیید کد</span>
+                    <span class="sf-otp-loader"></span>
                 </button>
-                <div id="bq-otp-error-2" class="bq-otp-error"></div>
-                <div id="bq-otp-success-2" class="bq-otp-success"></div>
+                <div id="sf-otp-error-2" class="sf-otp-error"></div>
+                <div id="sf-otp-success-2" class="sf-otp-success"></div>
                 
-                <div class="bq-otp-resend">
-                    <span class="bq-otp-resend-text">ارسال مجدد کد</span>
+                <div class="sf-otp-resend">
+                    <span class="sf-otp-resend-text">ارسال مجدد کد</span>
                 </div>
             </div>
         </div>
@@ -373,21 +373,21 @@ class Boshqab_OTP_Login {
         }
         
         ?>
-        <div class="bq-checkout-login-prompt" style="background:#f8f8f8;padding:20px;border-radius:12px;margin-bottom:24px;text-align:center;">
+        <div class="sf-checkout-login-prompt" style="background:#f8f8f8;padding:20px;border-radius:12px;margin-bottom:24px;text-align:center;">
             <p style="margin:0 0 12px;font-size:15px;color:#555;">برای ادامه خرید، وارد شوید یا ثبت‌نام کنید</p>
-            <button class="button bq-show-otp-btn" onclick="jQuery('#bq-otp-form-area').toggle();" 
+            <button class="button sf-show-otp-btn" onclick="jQuery('#sf-otp-form-area').toggle();" 
                     style="background:#036666;color:#fff;padding:12px 30px;border:none;border-radius:25px;cursor:pointer;">
                 ورود با شماره موبایل
             </button>
-            <div id="bq-otp-form-area" style="display:none;margin-top:16px;">
-                <?php echo do_shortcode('[boshqab_otp]'); ?>
+            <div id="sf-otp-form-area" style="display:none;margin-top:16px;">
+                <?php echo do_shortcode('[sofre_otp]'); ?>
             </div>
         </div>
         <?php
     }
 
     public function ajax_send_otp_code() {
-        check_ajax_referer('bq_nonce', 'nonce');
+        check_ajax_referer('sf_nonce', 'nonce');
         
         $phone = sanitize_text_field($_POST['phone'] ?? '');
         
@@ -399,7 +399,7 @@ class Boshqab_OTP_Login {
         if (function_exists('df_digits_send_code')) {
             $result = df_digits_send_code($phone);
             if ($result) {
-                update_option('bq_otp_phone_' . $phone, time());
+                update_option('sf_otp_phone_' . $phone, time());
                 wp_send_json_success(array('message' => 'کد تأیید ارسال شد.'));
             } else {
                 // Digits failed, fallback to simple code
@@ -415,17 +415,17 @@ class Boshqab_OTP_Login {
         $code = wp_rand(1000, 9999);
         $hashed = wp_hash($code . $phone . date('Y-m-d H'));
         
-        set_transient('bq_otp_' . $hashed, array(
+        set_transient('sf_otp_' . $hashed, array(
             'phone' => $phone,
             'code' => $code,
             'time' => time(),
         ), 120);
         
-        update_option('bq_otp_pending_' . $phone, $hashed);
+        update_option('sf_otp_pending_' . $phone, $hashed);
         
         // در محیط واقعی اینجا SMS ارسال می‌شود
         // فعلاً کد رو در لاگ ذخیره می‌کنیم برای تست
-        error_log('Boshqab OTP Code for ' . $phone . ': ' . $code);
+        error_log('Sofre OTP Code for ' . $phone . ': ' . $code);
         
         // اگر Digits نصب نباشه، کد رو برمی‌گردونیم (فقط برای دیباگ)
         if (defined('WP_DEBUG') && WP_DEBUG) {
@@ -434,13 +434,13 @@ class Boshqab_OTP_Login {
                 'debug_code' => $code,
             ));
         } else {
-            update_option('bq_otp_debug_' . $phone, $code);
+            update_option('sf_otp_debug_' . $phone, $code);
             wp_send_json_success(array('message' => 'کد تأیید ارسال شد.'));
         }
     }
 
     public function ajax_verify_otp_code() {
-        check_ajax_referer('bq_nonce', 'nonce');
+        check_ajax_referer('sf_nonce', 'nonce');
         
         $phone = sanitize_text_field($_POST['phone'] ?? '');
         $code = sanitize_text_field($_POST['code'] ?? '');
@@ -458,15 +458,15 @@ class Boshqab_OTP_Login {
             }
         } else {
             // بررسی کد ساده
-            $hashed = get_option('bq_otp_pending_' . $phone);
+            $hashed = get_option('sf_otp_pending_' . $phone);
             if (!$hashed) {
                 wp_send_json_error(array('message' => 'ابتدا درخواست کد دهید.'));
             }
             
-            $stored = get_transient('bq_otp_' . $hashed);
+            $stored = get_transient('sf_otp_' . $hashed);
             if (!$stored || $stored['phone'] !== $phone || $stored['code'] !== intval($code)) {
                 // بررسی کد دیباگ
-                $debug_code = get_option('bq_otp_debug_' . $phone);
+                $debug_code = get_option('sf_otp_debug_' . $phone);
                 if ($debug_code != $code) {
                     wp_send_json_error(array('message' => 'کد وارد شده اشتباه است.'));
                 }
@@ -509,9 +509,9 @@ class Boshqab_OTP_Login {
         wp_set_auth_cookie($user->ID);
         
         // پاکسازی
-        delete_option('bq_otp_pending_' . $phone);
-        delete_transient('bq_otp_' . $hashed ?? '');
-        delete_option('bq_otp_debug_' . $phone);
+        delete_option('sf_otp_pending_' . $phone);
+        delete_transient('sf_otp_' . $hashed ?? '');
+        delete_option('sf_otp_debug_' . $phone);
         
         wp_send_json_success(array(
             'message' => 'ورود موفق.',
@@ -520,4 +520,4 @@ class Boshqab_OTP_Login {
     }
 }
 
-Boshqab_OTP_Login::instance();
+Sofre_OTP_Login::instance();

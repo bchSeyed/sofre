@@ -1,8 +1,8 @@
 <?php
 if (!defined('ABSPATH')) exit;
-class Boshqab_Shipping_Motorcycle extends WC_Shipping_Method {
+class Sofre_Shipping_Motorcycle extends WC_Shipping_Method {
     public function __construct($instance_id = 0) {
-        $this->id = 'bq_motorcycle';
+        $this->id = 'sf_motorcycle';
         $this->instance_id = absint($instance_id);
         $this->method_title = 'ارسال با پیک موتوری';
         $this->method_description = 'ارسال سفارش با پیک موتوری درب منزل';

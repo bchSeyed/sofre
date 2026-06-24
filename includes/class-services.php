@@ -7,7 +7,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class Boshqab_Services {
+class Sofre_Services {
 
     private static $instance = null;
 
@@ -20,11 +20,11 @@ class Boshqab_Services {
 
     public function __construct() {
         // ثبت شورتکد انتخاب روش تحویل
-        add_shortcode('boshqab_services', array($this, 'render_services_selector'));
+        add_shortcode('sofre_services', array($this, 'render_services_selector'));
         
         // Ajax برای ذخیره روش تحویل انتخابی
-        add_action('wp_ajax_bq_set_service', array($this, 'ajax_set_service'));
-        add_action('wp_ajax_nopriv_bq_set_service', array($this, 'ajax_set_service'));
+        add_action('wp_ajax_sf_set_service', array($this, 'ajax_set_service'));
+        add_action('wp_ajax_nopriv_sf_set_service', array($this, 'ajax_set_service'));
         
         // نمایش انتخاب روش در Checkout
         add_action('woocommerce_checkout_before_customer_details', array($this, 'checkout_service_selector'), 5);
@@ -47,23 +47,23 @@ class Boshqab_Services {
     }
 
     public function frontend_assets() {
-        if (!is_checkout() && !has_shortcode(get_post()->post_content ?? '', 'boshqab_services')) {
+        if (!is_checkout() && !has_shortcode(get_post()->post_content ?? '', 'sofre_services')) {
             return;
         }
-        wp_add_inline_style('bq-frontend', $this->get_services_styles());
-        wp_add_inline_script('bq-frontend', $this->get_services_script(), 'before');
+        wp_add_inline_style('sf-frontend', $this->get_services_styles());
+        wp_add_inline_script('sf-frontend', $this->get_services_script(), 'before');
     }
 
     private function get_services_styles() {
         return '
-        .bq-services-section {
+        .sf-services-section {
             margin-bottom: 24px;
             padding: 20px;
             background: #f9f9f9;
             border-radius: 16px;
             border: 1px solid #eee;
         }
-        .bq-services-title {
+        .sf-services-title {
             font-size: 16px;
             font-weight: 700;
             color: #1d1a18;
@@ -72,21 +72,21 @@ class Boshqab_Services {
             align-items: center;
             gap: 8px;
         }
-        .bq-services-grid {
+        .sf-services-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
             gap: 12px;
         }
-        .bq-service-option {
+        .sf-service-option {
             position: relative;
             cursor: pointer;
         }
-        .bq-service-option input {
+        .sf-service-option input {
             position: absolute;
             opacity: 0;
             pointer-events: none;
         }
-        .bq-service-card {
+        .sf-service-card {
             padding: 16px 12px;
             border: 2px solid #e0e0e0;
             border-radius: 14px;
@@ -94,33 +94,33 @@ class Boshqab_Services {
             transition: all 0.2s;
             background: #fff;
         }
-        .bq-service-option input:checked + .bq-service-card {
+        .sf-service-option input:checked + .sf-service-card {
             border-color: #036666;
             background: #f0f7f7;
             box-shadow: 0 2px 8px rgba(3,102,102,0.15);
         }
-        .bq-service-option input:checked + .bq-service-card .bq-service-icon {
+        .sf-service-option input:checked + .sf-service-card .sf-service-icon {
             transform: scale(1.1);
         }
-        .bq-service-icon {
+        .sf-service-icon {
             font-size: 32px;
             display: block;
             margin-bottom: 8px;
             transition: transform 0.2s;
         }
-        .bq-service-name {
+        .sf-service-name {
             font-size: 14px;
             font-weight: 600;
             color: #333;
             display: block;
         }
-        .bq-service-price {
+        .sf-service-price {
             font-size: 12px;
             color: #888;
             margin-top: 4px;
             display: block;
         }
-        .bq-service-desc {
+        .sf-service-desc {
             font-size: 11px;
             color: #aaa;
             margin-top: 2px;
@@ -131,12 +131,12 @@ class Boshqab_Services {
     private function get_services_script() {
         return '
         jQuery(document).ready(function($) {
-            $(document).on("change", ".bq-service-option input", function() {
+            $(document).on("change", ".sf-service-option input", function() {
                 var service = $(this).val();
-                $.post(bq_ajax.ajax_url, {
-                    action: "bq_set_service",
+                $.post(sf_ajax.ajax_url, {
+                    action: "sf_set_service",
                     service: service,
-                    nonce: bq_ajax.nonce
+                    nonce: sf_ajax.nonce
                 }, function(response) {
                     if (response.success) {
                         $("body").trigger("update_checkout");
@@ -149,12 +149,12 @@ class Boshqab_Services {
 
     public function get_available_services() {
         $services = array();
-        $enable_delivery = get_option('bq_enable_delivery', 'yes');
+        $enable_delivery = get_option('sf_enable_delivery', 'yes');
         
         // Delivery - ارسال با موتور
         if ($enable_delivery === 'yes') {
-            $delivery_fee = intval(get_option('bq_delivery_fee', 0));
-            $free_min = intval(get_option('bq_free_delivery_min', 0));
+            $delivery_fee = intval(get_option('sf_delivery_fee', 0));
+            $free_min = intval(get_option('sf_free_delivery_min', 0));
             $cart_total = WC()->cart ? WC()->cart->get_subtotal() : 0;
             
             $price_text = '';
@@ -206,21 +206,21 @@ class Boshqab_Services {
 
     public function render_services_selector() {
         $services = $this->get_available_services();
-        $selected = WC()->session ? WC()->session->get('bq_selected_service', 'pickup') : 'pickup';
+        $selected = WC()->session ? WC()->session->get('sf_selected_service', 'pickup') : 'pickup';
         
         ob_start();
         ?>
-        <div class="bq-services-section">
-            <div class="bq-services-title">🚚 روش تحویل</div>
-            <div class="bq-services-grid">
+        <div class="sf-services-section">
+            <div class="sf-services-title">🚚 روش تحویل</div>
+            <div class="sf-services-grid">
                 <?php foreach ($services as $key => $service): ?>
-                <label class="bq-service-option">
-                    <input type="radio" name="bq_service" value="<?php echo esc_attr($key); ?>" <?php checked($selected, $key); ?>>
-                    <div class="bq-service-card">
-                        <span class="bq-service-icon"><?php echo $service['icon']; ?></span>
-                        <span class="bq-service-name"><?php echo esc_html($service['name']); ?></span>
-                        <span class="bq-service-price"><?php echo esc_html($service['price']); ?></span>
-                        <span class="bq-service-desc"><?php echo esc_html($service['desc']); ?></span>
+                <label class="sf-service-option">
+                    <input type="radio" name="sf_service" value="<?php echo esc_attr($key); ?>" <?php checked($selected, $key); ?>>
+                    <div class="sf-service-card">
+                        <span class="sf-service-icon"><?php echo $service['icon']; ?></span>
+                        <span class="sf-service-name"><?php echo esc_html($service['name']); ?></span>
+                        <span class="sf-service-price"><?php echo esc_html($service['price']); ?></span>
+                        <span class="sf-service-desc"><?php echo esc_html($service['desc']); ?></span>
                     </div>
                 </label>
                 <?php endforeach; ?>
@@ -238,7 +238,7 @@ class Boshqab_Services {
     }
 
     public function ajax_set_service() {
-        check_ajax_referer('bq_nonce', 'nonce');
+        check_ajax_referer('sf_nonce', 'nonce');
         
         $service = sanitize_text_field($_POST['service'] ?? 'pickup');
         $valid_services = array('delivery', 'pickup', 'serving');
@@ -248,7 +248,7 @@ class Boshqab_Services {
         }
         
         if (WC()->session) {
-            WC()->session->set('bq_selected_service', $service);
+            WC()->session->set('sf_selected_service', $service);
         }
         
         wp_send_json_success(array(
@@ -262,11 +262,11 @@ class Boshqab_Services {
             return;
         }
         
-        $service = WC()->session ? WC()->session->get('bq_selected_service', 'pickup') : 'pickup';
+        $service = WC()->session ? WC()->session->get('sf_selected_service', 'pickup') : 'pickup';
         
         if ($service === 'delivery') {
-            $delivery_fee = intval(get_option('bq_delivery_fee', 0));
-            $free_min = intval(get_option('bq_free_delivery_min', 0));
+            $delivery_fee = intval(get_option('sf_delivery_fee', 0));
+            $free_min = intval(get_option('sf_free_delivery_min', 0));
             $cart_total = $cart->get_subtotal();
             
             if ($delivery_fee > 0 && ($free_min <= 0 || $cart_total < $free_min)) {
@@ -278,29 +278,29 @@ class Boshqab_Services {
     }
 
     public function save_service_to_order($order, $data) {
-        $service = WC()->session ? WC()->session->get('bq_selected_service', 'pickup') : 'pickup';
+        $service = WC()->session ? WC()->session->get('sf_selected_service', 'pickup') : 'pickup';
         $services = $this->get_available_services();
         
         $service_name = isset($services[$service]) ? $services[$service]['name'] : 'تحویل حضوری';
-        $order->update_meta_data('_bq_service', $service);
-        $order->update_meta_data('_bq_service_name', $service_name);
+        $order->update_meta_data('_sf_service', $service);
+        $order->update_meta_data('_sf_service_name', $service_name);
     }
 
     public function show_service_in_order_details($order) {
-        $service = $order->get_meta('_bq_service_name');
+        $service = $order->get_meta('_sf_service_name');
         if ($service) {
-            echo '<div class="bq-order-service" style="margin-top:20px;padding:16px;background:#f8f8f8;border-radius:12px;">';
+            echo '<div class="sf-order-service" style="margin-top:20px;padding:16px;background:#f8f8f8;border-radius:12px;">';
             echo '<strong>روش تحویل:</strong> ' . esc_html($service);
             echo '</div>';
         }
     }
 
     public function show_service_in_admin($order) {
-        $service = $order->get_meta('_bq_service_name');
+        $service = $order->get_meta('_sf_service_name');
         if ($service) {
             echo '<p><strong>روش تحویل:</strong> ' . esc_html($service) . '</p>';
         }
     }
 }
 
-Boshqab_Services::instance();
+Sofre_Services::instance();

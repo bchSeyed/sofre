@@ -7,7 +7,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class Boshqab_Orders {
+class Sofre_Orders {
 
     private static $instance = null;
 
@@ -38,11 +38,11 @@ class Boshqab_Orders {
         foreach ($order_statuses as $key => $status) {
             $new_statuses[$key] = $status;
             if ($key === 'wc-processing') {
-                $new_statuses['wc-bq-pending'] = 'در انتظار تایید رستوران';
-                $new_statuses['wc-bq-preparing'] = 'در حال آماده‌سازی';
-                $new_statuses['wc-bq-ready'] = 'آماده تحویل';
-                $new_statuses['wc-bq-delivering'] = 'در حال ارسال';
-                $new_statuses['wc-bq-delivered'] = 'تحویل شده';
+                $new_statuses['wc-sf-pending'] = 'در انتظار تایید رستوران';
+                $new_statuses['wc-sf-preparing'] = 'در حال آماده‌سازی';
+                $new_statuses['wc-sf-ready'] = 'آماده تحویل';
+                $new_statuses['wc-sf-delivering'] = 'در حال ارسال';
+                $new_statuses['wc-sf-delivered'] = 'تحویل شده';
             }
         }
         
@@ -56,11 +56,11 @@ class Boshqab_Orders {
         $status = $order->get_status();
         
         $steps = array(
-            'bq-pending' => array('label' => 'در انتظار تایید', 'icon' => '📋'),
-            'bq-preparing' => array('label' => 'در حال آماده‌سازی', 'icon' => '👨‍🍳'),
-            'bq-ready' => array('label' => 'آماده تحویل', 'icon' => '✅'),
-            'bq-delivering' => array('label' => 'در حال ارسال', 'icon' => '🛵'),
-            'bq-delivered' => array('label' => 'تحویل شده', 'icon' => '🎉'),
+            'sf-pending' => array('label' => 'در انتظار تایید', 'icon' => '📋'),
+            'sf-preparing' => array('label' => 'در حال آماده‌سازی', 'icon' => '👨‍🍳'),
+            'sf-ready' => array('label' => 'آماده تحویل', 'icon' => '✅'),
+            'sf-delivering' => array('label' => 'در حال ارسال', 'icon' => '🛵'),
+            'sf-delivered' => array('label' => 'تحویل شده', 'icon' => '🎉'),
         );
         
         if (!array_key_exists($status, $steps) && !array_key_exists(str_replace('wc-', '', $status), $steps)) {
@@ -69,9 +69,9 @@ class Boshqab_Orders {
         
         $current_status = str_replace('wc-', '', $status);
         
-        echo '<div class="bq-order-tracking">';
+        echo '<div class="sf-order-tracking">';
         echo '<h3>وضعیت سفارش</h3>';
-        echo '<div class="bq-tracking-steps">';
+        echo '<div class="sf-tracking-steps">';
         
         $found = false;
         foreach ($steps as $step_key => $step) {
@@ -80,9 +80,9 @@ class Boshqab_Orders {
             }
             
             $class = $found ? 'active' : 'inactive';
-            echo '<div class="bq-tracking-step ' . $class . '">';
-            echo '<span class="bq-step-icon">' . $step['icon'] . '</span>';
-            echo '<span class="bq-step-label">' . $step['label'] . '</span>';
+            echo '<div class="sf-tracking-step ' . $class . '">';
+            echo '<span class="sf-step-icon">' . $step['icon'] . '</span>';
+            echo '<span class="sf-step-label">' . $step['label'] . '</span>';
             echo '</div>';
         }
         
@@ -90,30 +90,30 @@ class Boshqab_Orders {
         echo '</div>';
         ?>
         <style>
-        .bq-order-tracking {
+        .sf-order-tracking {
             margin: 30px 0;
             padding: 20px;
             background: #f8f8f8;
             border-radius: 12px;
         }
-        .bq-order-tracking h3 {
+        .sf-order-tracking h3 {
             margin-top: 0;
             margin-bottom: 20px;
             text-align: center;
         }
-        .bq-tracking-steps {
+        .sf-tracking-steps {
             display: flex;
             justify-content: space-between;
             align-items: center;
             position: relative;
         }
-        .bq-tracking-step {
+        .sf-tracking-step {
             text-align: center;
             flex: 1;
             position: relative;
             padding: 10px 0;
         }
-        .bq-tracking-step:not(:last-child)::after {
+        .sf-tracking-step:not(:last-child)::after {
             content: '';
             position: absolute;
             top: 50%;
@@ -123,28 +123,28 @@ class Boshqab_Orders {
             background: #ddd;
             z-index: 0;
         }
-        .bq-tracking-step.active:not(:last-child)::after {
+        .sf-tracking-step.active:not(:last-child)::after {
             background: #4CAF50;
         }
-        .bq-tracking-step .bq-step-icon {
+        .sf-tracking-step .sf-step-icon {
             display: block;
             font-size: 28px;
             margin-bottom: 5px;
         }
-        .bq-tracking-step.active .bq-step-icon {
+        .sf-tracking-step.active .sf-step-icon {
             transform: scale(1.2);
         }
-        .bq-tracking-step.inactive .bq-step-icon {
+        .sf-tracking-step.inactive .sf-step-icon {
             opacity: 0.4;
         }
-        .bq-tracking-step .bq-step-label {
+        .sf-tracking-step .sf-step-label {
             font-size: 12px;
             display: block;
         }
-        .bq-tracking-step.inactive .bq-step-label {
+        .sf-tracking-step.inactive .sf-step-label {
             color: #999;
         }
-        .bq-tracking-step.active .bq-step-label {
+        .sf-tracking-step.active .sf-step-label {
             color: #4CAF50;
             font-weight: bold;
         }
@@ -157,8 +157,8 @@ class Boshqab_Orders {
      */
     public function add_order_meta_box() {
         add_meta_box(
-            'bq_order_status_box',
-            'وضعیت بشقاب',
+            'sf_order_status_box',
+            'وضعیت سفره',
             array($this, 'render_order_meta_box'),
             'shop_order',
             'side',
@@ -176,31 +176,31 @@ class Boshqab_Orders {
             <p style="font-size:18px;font-weight:bold;margin-bottom:15px;">
                 وضعیت فعلی: <?php echo esc_html(wc_get_order_status_name($current_status)); ?>
             </p>
-            <select class="bq-quick-status" data-order-id="<?php echo $order->get_id(); ?>" style="width:100%;margin-bottom:10px;padding:8px;border-radius:6px;border:1px solid #ddd;">
+            <select class="sf-quick-status" data-order-id="<?php echo $order->get_id(); ?>" style="width:100%;margin-bottom:10px;padding:8px;border-radius:6px;border:1px solid #ddd;">
                 <option value="">تغییر وضعیت...</option>
-                <option value="bq-pending" <?php selected($current_status, 'bq-pending'); ?>>در انتظار تایید</option>
-                <option value="bq-preparing" <?php selected($current_status, 'bq-preparing'); ?>>در حال آماده‌سازی</option>
-                <option value="bq-ready" <?php selected($current_status, 'bq-ready'); ?>>آماده تحویل</option>
-                <option value="bq-delivering" <?php selected($current_status, 'bq-delivering'); ?>>در حال ارسال</option>
-                <option value="bq-delivered" <?php selected($current_status, 'bq-delivered'); ?>>تحویل شده</option>
+                <option value="sf-pending" <?php selected($current_status, 'sf-pending'); ?>>در انتظار تایید</option>
+                <option value="sf-preparing" <?php selected($current_status, 'sf-preparing'); ?>>در حال آماده‌سازی</option>
+                <option value="sf-ready" <?php selected($current_status, 'sf-ready'); ?>>آماده تحویل</option>
+                <option value="sf-delivering" <?php selected($current_status, 'sf-delivering'); ?>>در حال ارسال</option>
+                <option value="sf-delivered" <?php selected($current_status, 'sf-delivered'); ?>>تحویل شده</option>
             </select>
-            <span class="bq-quick-status-msg" style="color:#4CAF50;display:none;"></span>
+            <span class="sf-quick-status-msg" style="color:#4CAF50;display:none;"></span>
         </div>
         <script>
         jQuery(document).ready(function($) {
-            $('.bq-quick-status').on('change', function() {
+            $('.sf-quick-status').on('change', function() {
                 var orderId = $(this).data('order-id');
                 var status = $(this).val();
                 if (!status) return;
                 
-                var msgEl = $(this).siblings('.bq-quick-status-msg');
+                var msgEl = $(this).siblings('.sf-quick-status-msg');
                 msgEl.hide();
                 
                 $.post(ajaxurl, {
-                    action: 'bq_update_order_status',
+                    action: 'sf_update_order_status',
                     order_id: orderId,
                     status: status,
-                    nonce: '<?php echo wp_create_nonce("bq_nonce"); ?>'
+                    nonce: '<?php echo wp_create_nonce("sf_nonce"); ?>'
                 }, function(response) {
                     if (response.success) {
                         msgEl.text('✅ وضعیت بروزرسانی شد').show().delay(2000).fadeOut();
@@ -214,4 +214,4 @@ class Boshqab_Orders {
     }
 }
 
-Boshqab_Orders::instance();
+Sofre_Orders::instance();

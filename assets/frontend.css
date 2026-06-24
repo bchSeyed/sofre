@@ -1,56 +1,56 @@
 :root {
-    --bq-primary: #036666;
-    --bq-secondary: #ad8b4c;
-    --bq-bg: #1d1a18;
-    --bq-card-bg: #26211f;
-    --bq-text: #ffffff;
-    --bq-stroke: #E0E0E0;
-    --bq-gray-light: #f4f4f4;
-    --bq-gray-dark: #737373;
+    --sf-primary: #036666;
+    --sf-secondary: #ad8b4c;
+    --sf-bg: #1d1a18;
+    --sf-card-bg: #26211f;
+    --sf-text: #ffffff;
+    --sf-stroke: #E0E0E0;
+    --sf-gray-light: #f4f4f4;
+    --sf-gray-dark: #737373;
 }
 
 *, *::before, *::after {
     box-sizing: border-box;
 }
 
-.bq-menu-page {
+.sf-menu-page {
     font-family: Tahoma, sans-serif;
-    background-color: var(--bq-bg);
-    color: var(--bq-text);
+    background-color: var(--sf-bg);
+    color: var(--sf-text);
     min-height: 100vh;
     padding-bottom: 80px;
     direction: rtl;
 }
 
 /* هدر */
-.bq-header {
-    background: linear-gradient(135deg, var(--bq-primary), #024d4d);
+.sf-header {
+    background: linear-gradient(135deg, var(--sf-primary), #024d4d);
     padding: 40px 20px;
     text-align: center;
     position: relative;
     overflow: hidden;
 }
 
-.bq-header::after {
+.sf-header::after {
     content: '';
     position: absolute;
     bottom: -20px;
     left: 0;
     right: 0;
     height: 40px;
-    background: var(--bq-bg);
+    background: var(--sf-bg);
     border-radius: 50% 50% 0 0;
 }
 
-.bq-restaurant-name {
+.sf-restaurant-name {
     margin: 0 0 10px;
     font-size: 28px;
     font-weight: 700;
     color: #fff;
 }
 
-.bq-restaurant-address,
-.bq-restaurant-phone {
+.sf-restaurant-address,
+.sf-restaurant-phone {
     margin: 5px 0;
     font-size: 14px;
     opacity: 0.9;
@@ -58,16 +58,16 @@
 }
 
 /* ناوبری دسته‌بندی */
-.bq-categories-nav {
+.sf-categories-nav {
     position: sticky;
     top: 0;
     z-index: 100;
-    background: var(--bq-bg);
+    background: var(--sf-bg);
     padding: 12px 0;
     border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
-.bq-categories-scroll {
+.sf-categories-scroll {
     display: flex;
     overflow-x: auto;
     gap: 8px;
@@ -75,17 +75,17 @@
     -webkit-overflow-scrolling: touch;
 }
 
-.bq-categories-scroll::-webkit-scrollbar {
+.sf-categories-scroll::-webkit-scrollbar {
     display: none;
 }
 
-.bq-cat-btn {
+.sf-cat-btn {
     flex: 0 0 auto;
     padding: 10px 20px;
-    border: 2px solid var(--bq-secondary);
+    border: 2px solid var(--sf-secondary);
     border-radius: 25px;
     background: transparent;
-    color: var(--bq-secondary);
+    color: var(--sf-secondary);
     font-family: inherit;
     font-size: 14px;
     font-weight: 500;
@@ -94,57 +94,57 @@
     transition: all 0.2s;
 }
 
-.bq-cat-btn:hover,
-.bq-cat-btn.active {
-    background: var(--bq-secondary);
+.sf-cat-btn:hover,
+.sf-cat-btn.active {
+    background: var(--sf-secondary);
     color: #fff;
 }
 
 /* محتوای منو */
-.bq-menu-content {
+.sf-menu-content {
     padding: 20px 16px;
     max-width: 800px;
     margin: 0 auto;
 }
 
-.bq-loading {
+.sf-loading {
     text-align: center;
     padding: 60px 20px;
 }
 
-.bq-spinner {
+.sf-spinner {
     width: 40px;
     height: 40px;
     border: 3px solid rgba(255,255,255,0.2);
-    border-top-color: var(--bq-secondary);
+    border-top-color: var(--sf-secondary);
     border-radius: 50%;
-    animation: bq-spin 0.6s linear infinite;
+    animation: sf-spin 0.6s linear infinite;
     margin: 0 auto 16px;
 }
 
-@keyframes bq-spin {
+@keyframes sf-spin {
     to { transform: rotate(360deg); }
 }
 
 /* دسته‌بندی منو */
-.bq-category-section {
+.sf-category-section {
     margin-bottom: 36px;
 }
 
-.bq-section-header {
+.sf-section-header {
     display: flex;
     align-items: center;
     gap: 12px;
     padding: 12px 0;
     margin-bottom: 16px;
-    border-bottom: 2px solid var(--bq-secondary);
+    border-bottom: 2px solid var(--sf-secondary);
 }
 
-.bq-section-header .bq-cat-icon {
+.sf-section-header .sf-cat-icon {
     width: 48px;
     height: 48px;
     border-radius: 50%;
-    background: var(--bq-secondary);
+    background: var(--sf-secondary);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -152,7 +152,7 @@
     color: #fff;
 }
 
-.bq-section-header h2 {
+.sf-section-header h2 {
     margin: 0;
     font-size: 22px;
     font-weight: 600;
@@ -160,46 +160,46 @@
 }
 
 /* آیتم منو */
-.bq-menu-item {
+.sf-menu-item {
     display: flex;
     gap: 16px;
     padding: 16px;
-    background: var(--bq-card-bg);
+    background: var(--sf-card-bg);
     border-radius: 16px;
     margin-bottom: 12px;
     transition: transform 0.2s;
 }
 
-.bq-menu-item:hover {
+.sf-menu-item:hover {
     transform: translateY(-2px);
 }
 
-.bq-item-image {
+.sf-item-image {
     width: 100px;
     height: 100px;
     flex-shrink: 0;
 }
 
-.bq-item-image img {
+.sf-item-image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     border-radius: 12px;
 }
 
-.bq-item-info {
+.sf-item-info {
     flex: 1;
     display: flex;
     flex-direction: column;
 }
 
-.bq-item-name {
+.sf-item-name {
     font-size: 18px;
     font-weight: 600;
     margin: 0 0 6px;
 }
 
-.bq-item-desc {
+.sf-item-desc {
     font-size: 13px;
     opacity: 0.7;
     margin: 0 0 8px;
@@ -210,24 +210,24 @@
     overflow: hidden;
 }
 
-.bq-item-bottom {
+.sf-item-bottom {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-top: auto;
 }
 
-.bq-item-price {
+.sf-item-price {
     font-size: 18px;
     font-weight: 700;
-    color: var(--bq-secondary);
+    color: var(--sf-secondary);
 }
 
-.bq-add-btn {
+.sf-add-btn {
     padding: 8px 20px;
     border: none;
     border-radius: 20px;
-    background: var(--bq-primary);
+    background: var(--sf-primary);
     color: #fff;
     font-family: inherit;
     font-size: 14px;
@@ -238,30 +238,30 @@
     display: inline-block;
 }
 
-.bq-add-btn:hover {
+.sf-add-btn:hover {
     background: #024d4d;
     color: #fff;
 }
 
-.bq-add-btn-disabled {
+.sf-add-btn-disabled {
     background: #555;
     color: #999;
     cursor: not-allowed;
     opacity: 0.7;
 }
 
-.bq-add-btn-disabled:hover {
+.sf-add-btn-disabled:hover {
     background: #555;
     color: #999;
 }
 
 /* سبد خرید پایین */
-.bq-cart-bar {
+.sf-cart-bar {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    background: var(--bq-primary);
+    background: var(--sf-primary);
     padding: 12px 20px;
     display: flex;
     justify-content: space-between;
@@ -270,15 +270,15 @@
     box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
 }
 
-.bq-cart-info {
+.sf-cart-info {
     display: flex;
     align-items: center;
     gap: 8px;
     color: #fff;
 }
 
-.bq-cart-count {
-    background: var(--bq-secondary);
+.sf-cart-count {
+    background: var(--sf-secondary);
     color: #fff;
     width: 28px;
     height: 28px;
@@ -290,19 +290,19 @@
     font-weight: 700;
 }
 
-.bq-cart-text {
+.sf-cart-text {
     font-size: 14px;
     opacity: 0.9;
 }
 
-.bq-cart-total {
+.sf-cart-total {
     font-size: 16px;
     font-weight: 700;
 }
 
-.bq-cart-btn {
+.sf-cart-btn {
     padding: 10px 24px;
-    background: var(--bq-secondary);
+    background: var(--sf-secondary);
     color: #fff !important;
     border-radius: 25px;
     text-decoration: none !important;
@@ -311,12 +311,12 @@
     transition: background 0.2s;
 }
 
-.bq-cart-btn:hover {
+.sf-cart-btn:hover {
     background: #9a7d44;
 }
 
 /* وضعیت سفارش */
-.bq-status-badge {
+.sf-status-badge {
     display: inline-block;
     padding: 4px 12px;
     border-radius: 12px;
@@ -324,15 +324,15 @@
     font-weight: 600;
 }
 
-.bq-badge-pending { background: #fff3cd; color: #856404; }
-.bq-badge-preparing { background: #cce5ff; color: #004085; }
-.bq-badge-ready { background: #d4edda; color: #155724; }
-.bq-badge-delivering { background: #d1ecf1; color: #0c5460; }
-.bq-badge-delivered { background: #d4edda; color: #155724; }
+.sf-badge-pending { background: #fff3cd; color: #856404; }
+.sf-badge-preparing { background: #cce5ff; color: #004085; }
+.sf-badge-ready { background: #d4edda; color: #155724; }
+.sf-badge-delivering { background: #d1ecf1; color: #0c5460; }
+.sf-badge-delivered { background: #d4edda; color: #155724; }
 
 /* اطلاعات تسویه حساب */
 /* رستوران بسته */
-.bq-closed-banner {
+.sf-closed-banner {
     text-align: center;
     padding: 60px 20px;
     background: rgba(255,0,0,0.05);
@@ -341,30 +341,30 @@
     border: 2px dashed #f44336;
 }
 
-.bq-closed-icon {
+.sf-closed-icon {
     font-size: 64px;
     margin-bottom: 16px;
 }
 
-.bq-closed-banner h2 {
+.sf-closed-banner h2 {
     font-size: 24px;
     color: #f44336;
     margin: 0 0 10px;
 }
 
-.bq-closed-banner p {
+.sf-closed-banner p {
     font-size: 16px;
     opacity: 0.8;
     margin: 0 0 6px;
 }
 
-.bq-closed-hours {
+.sf-closed-hours {
     font-size: 14px;
     opacity: 0.6;
 }
 
 /* وضعیت در هدر */
-.bq-header-status {
+.sf-header-status {
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -375,68 +375,68 @@
     margin-top: 12px;
 }
 
-.bq-header-status.open {
+.sf-header-status.open {
     background: rgba(76,175,80,0.2);
     color: #81c784;
 }
 
-.bq-header-status.closed {
+.sf-header-status.closed {
     background: rgba(244,67,54,0.2);
     color: #ef9a9a;
 }
 
-.bq-header-status-dot {
+.sf-header-status-dot {
     width: 8px;
     height: 8px;
     border-radius: 50%;
     display: inline-block;
 }
 
-.bq-header-status.open .bq-header-status-dot {
+.sf-header-status.open .sf-header-status-dot {
     background: #4CAF50;
     box-shadow: 0 0 6px rgba(76,175,80,0.5);
 }
 
-.bq-header-status.closed .bq-header-status-dot {
+.sf-header-status.closed .sf-header-status-dot {
     background: #f44336;
 }
 
-.bq-header-hours {
+.sf-header-hours {
     font-size: 12px;
     opacity: 0.7;
     margin-right: 4px;
 }
 
-.bq-header-logo {
+.sf-header-logo {
     margin-bottom: 16px;
 }
 
-.bq-header-logo img {
+.sf-header-logo img {
     max-height: 80px;
     width: auto;
 }
 
-.bq-checkout-info {
+.sf-checkout-info {
     background: #f8f8f8;
     padding: 20px;
     border-radius: 12px;
     margin-bottom: 24px;
-    border-right: 4px solid var(--bq-primary);
+    border-right: 4px solid var(--sf-primary);
 }
 
-.bq-checkout-info h3 {
+.sf-checkout-info h3 {
     margin: 0 0 12px;
     font-size: 16px;
-    color: var(--bq-primary);
+    color: var(--sf-primary);
 }
 
-.bq-checkout-info ul {
+.sf-checkout-info ul {
     margin: 0;
     padding: 0;
     list-style: none;
 }
 
-.bq-checkout-info li {
+.sf-checkout-info li {
     padding: 4px 0;
     font-size: 14px;
     color: #555;
@@ -444,16 +444,16 @@
 
 /* واکنش‌گرا */
 @media (max-width: 480px) {
-    .bq-header { padding: 30px 16px; }
-    .bq-restaurant-name { font-size: 22px; }
-    .bq-menu-item { flex-direction: column; }
-    .bq-item-image { width: 100%; height: 160px; }
-    .bq-cart-bar { padding: 10px 16px; }
-    .bq-cart-btn { padding: 8px 16px; font-size: 13px; }
+    .sf-header { padding: 30px 16px; }
+    .sf-restaurant-name { font-size: 22px; }
+    .sf-menu-item { flex-direction: column; }
+    .sf-item-image { width: 100%; height: 160px; }
+    .sf-cart-bar { padding: 10px 16px; }
+    .sf-cart-btn { padding: 8px 16px; font-size: 13px; }
 }
 
 @media (min-width: 768px) {
-    .bq-menu-content { padding: 30px 24px; }
-    .bq-menu-item { padding: 20px; }
-    .bq-item-image { width: 120px; height: 120px; }
+    .sf-menu-content { padding: 30px 24px; }
+    .sf-menu-item { padding: 20px; }
+    .sf-item-image { width: 120px; height: 120px; }
 }

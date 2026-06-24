@@ -7,7 +7,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class Boshqab_Drawer {
+class Sofre_Drawer {
 
     private static $instance = null;
 
@@ -23,27 +23,27 @@ class Boshqab_Drawer {
         add_action('wp_enqueue_scripts', array($this, 'frontend_assets'));
         
         // Ajax handlers
-        add_action('wp_ajax_bq_drawer_update_qty', array($this, 'ajax_update_quantity'));
-        add_action('wp_ajax_nopriv_bq_drawer_update_qty', array($this, 'ajax_update_quantity'));
-        add_action('wp_ajax_bq_drawer_remove_item', array($this, 'ajax_remove_item'));
-        add_action('wp_ajax_nopriv_bq_drawer_remove_item', array($this, 'ajax_remove_item'));
-        add_action('wp_ajax_bq_drawer_empty_cart', array($this, 'ajax_empty_cart'));
-        add_action('wp_ajax_nopriv_bq_drawer_empty_cart', array($this, 'ajax_empty_cart'));
-        add_action('wp_ajax_bq_get_drawer_content', array($this, 'ajax_get_drawer_content'));
-        add_action('wp_ajax_nopriv_bq_get_drawer_content', array($this, 'ajax_get_drawer_content'));
+        add_action('wp_ajax_sf_drawer_update_qty', array($this, 'ajax_update_quantity'));
+        add_action('wp_ajax_nopriv_sf_drawer_update_qty', array($this, 'ajax_update_quantity'));
+        add_action('wp_ajax_sf_drawer_remove_item', array($this, 'ajax_remove_item'));
+        add_action('wp_ajax_nopriv_sf_drawer_remove_item', array($this, 'ajax_remove_item'));
+        add_action('wp_ajax_sf_drawer_empty_cart', array($this, 'ajax_empty_cart'));
+        add_action('wp_ajax_nopriv_sf_drawer_empty_cart', array($this, 'ajax_empty_cart'));
+        add_action('wp_ajax_sf_get_drawer_content', array($this, 'ajax_get_drawer_content'));
+        add_action('wp_ajax_nopriv_sf_get_drawer_content', array($this, 'ajax_get_drawer_content'));
         
         // Fragment refresh
         add_filter('woocommerce_add_to_cart_fragments', array($this, 'cart_fragments'));
     }
 
     public function frontend_assets() {
-        wp_add_inline_style('bq-frontend', $this->get_drawer_styles());
-        wp_add_inline_script('bq-frontend', $this->get_drawer_script(), 'before');
+        wp_add_inline_style('sf-frontend', $this->get_drawer_styles());
+        wp_add_inline_script('sf-frontend', $this->get_drawer_script(), 'before');
     }
 
     private function get_drawer_styles() {
         return '
-        .bq-drawer-overlay {
+        .sf-drawer-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0,0,0,0.6);
@@ -52,11 +52,11 @@ class Boshqab_Drawer {
             visibility: hidden;
             transition: all 0.3s;
         }
-        .bq-drawer-overlay.open {
+        .sf-drawer-overlay.open {
             opacity: 1;
             visibility: visible;
         }
-        .bq-drawer {
+        .sf-drawer {
             position: fixed;
             top: 0; left: -380px;
             width: 380px;
@@ -70,22 +70,22 @@ class Boshqab_Drawer {
             flex-direction: column;
             box-shadow: 4px 0 20px rgba(0,0,0,0.15);
         }
-        .bq-drawer.open {
+        .sf-drawer.open {
             left: 0;
         }
-        .bq-drawer-header {
+        .sf-drawer-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 20px 20px 16px;
             border-bottom: 1px solid #eee;
         }
-        .bq-drawer-header h3 {
+        .sf-drawer-header h3 {
             margin: 0;
             font-size: 18px;
             color: #1d1a18;
         }
-        .bq-drawer-close {
+        .sf-drawer-close {
             background: none;
             border: none;
             font-size: 24px;
@@ -93,10 +93,10 @@ class Boshqab_Drawer {
             color: #888;
             padding: 0 4px;
         }
-        .bq-drawer-close:hover {
+        .sf-drawer-close:hover {
             color: #333;
         }
-        .bq-drawer-empty-btn {
+        .sf-drawer-empty-btn {
             background: none;
             border: none;
             color: #f44336;
@@ -106,58 +106,58 @@ class Boshqab_Drawer {
             align-items: center;
             gap: 4px;
         }
-        .bq-drawer-empty-btn:hover {
+        .sf-drawer-empty-btn:hover {
             text-decoration: underline;
         }
-        .bq-drawer-body {
+        .sf-drawer-body {
             flex: 1;
             overflow-y: auto;
             padding: 16px 20px;
         }
-        .bq-drawer-body::-webkit-scrollbar {
+        .sf-drawer-body::-webkit-scrollbar {
             width: 4px;
         }
-        .bq-drawer-body::-webkit-scrollbar-thumb {
+        .sf-drawer-body::-webkit-scrollbar-thumb {
             background: #ddd;
             border-radius: 4px;
         }
-        .bq-drawer-empty {
+        .sf-drawer-empty {
             text-align: center;
             padding: 60px 20px;
             color: #999;
         }
-        .bq-drawer-empty-icon {
+        .sf-drawer-empty-icon {
             font-size: 56px;
             margin-bottom: 16px;
         }
-        .bq-drawer-empty p {
+        .sf-drawer-empty p {
             margin: 0;
             font-size: 15px;
         }
-        .bq-drawer-item {
+        .sf-drawer-item {
             display: flex;
             gap: 12px;
             padding: 14px 0;
             border-bottom: 1px solid #f5f5f5;
             position: relative;
         }
-        .bq-drawer-item-image {
+        .sf-drawer-item-image {
             width: 70px;
             height: 70px;
             flex-shrink: 0;
             border-radius: 10px;
             overflow: hidden;
         }
-        .bq-drawer-item-image img {
+        .sf-drawer-item-image img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
-        .bq-drawer-item-info {
+        .sf-drawer-item-info {
             flex: 1;
             min-width: 0;
         }
-        .bq-drawer-item-name {
+        .sf-drawer-item-name {
             font-size: 14px;
             font-weight: 600;
             color: #1d1a18;
@@ -166,22 +166,22 @@ class Boshqab_Drawer {
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        .bq-drawer-item-price {
+        .sf-drawer-item-price {
             font-size: 14px;
             font-weight: 700;
             color: #036666;
         }
-        .bq-drawer-item-subtotal {
+        .sf-drawer-item-subtotal {
             font-size: 12px;
             color: #888;
         }
-        .bq-drawer-item-actions {
+        .sf-drawer-item-actions {
             display: flex;
             align-items: center;
             gap: 8px;
             margin-top: 8px;
         }
-        .bq-drawer-qty-btn {
+        .sf-drawer-qty-btn {
             width: 28px;
             height: 28px;
             border: 1px solid #ddd;
@@ -195,19 +195,19 @@ class Boshqab_Drawer {
             color: #555;
             transition: all 0.15s;
         }
-        .bq-drawer-qty-btn:hover {
+        .sf-drawer-qty-btn:hover {
             background: #036666;
             color: #fff;
             border-color: #036666;
         }
-        .bq-drawer-qty {
+        .sf-drawer-qty {
             font-size: 14px;
             font-weight: 600;
             min-width: 20px;
             text-align: center;
             color: #333;
         }
-        .bq-drawer-remove-item {
+        .sf-drawer-remove-item {
             background: none;
             border: none;
             color: #f44336;
@@ -215,12 +215,12 @@ class Boshqab_Drawer {
             cursor: pointer;
             margin-right: auto;
         }
-        .bq-drawer-footer {
+        .sf-drawer-footer {
             padding: 16px 20px 24px;
             border-top: 1px solid #eee;
             background: #fafafa;
         }
-        .bq-drawer-total {
+        .sf-drawer-total {
             display: flex;
             justify-content: space-between;
             font-size: 16px;
@@ -228,10 +228,10 @@ class Boshqab_Drawer {
             color: #1d1a18;
             margin-bottom: 12px;
         }
-        .bq-drawer-total span:last-child {
+        .sf-drawer-total span:last-child {
             color: #036666;
         }
-        .bq-drawer-checkout-btn {
+        .sf-drawer-checkout-btn {
             display: block;
             width: 100%;
             padding: 14px;
@@ -246,11 +246,11 @@ class Boshqab_Drawer {
             text-decoration: none;
             transition: background 0.2s;
         }
-        .bq-drawer-checkout-btn:hover {
+        .sf-drawer-checkout-btn:hover {
             background: #024d4d;
             color: #fff;
         }
-        .bq-drawer-floating-btn {
+        .sf-drawer-floating-btn {
             position: fixed;
             bottom: 20px;
             left: 20px;
@@ -268,15 +268,15 @@ class Boshqab_Drawer {
             box-shadow: 0 4px 16px rgba(3,102,102,0.4);
             transition: transform 0.2s;
         }
-        .bq-drawer-floating-btn:hover {
+        .sf-drawer-floating-btn:hover {
             transform: scale(1.1);
         }
-        .bq-drawer-floating-btn svg {
+        .sf-drawer-floating-btn svg {
             width: 24px;
             height: 24px;
             fill: #fff;
         }
-        .bq-drawer-floating-count {
+        .sf-drawer-floating-count {
             position: absolute;
             top: -4px;
             right: -4px;
@@ -291,22 +291,22 @@ class Boshqab_Drawer {
             align-items: center;
             justify-content: center;
         }
-        .bq-drawer-loader {
+        .sf-drawer-loader {
             text-align: center;
             padding: 40px;
         }
-        .bq-drawer-spinner {
+        .sf-drawer-spinner {
             width: 30px;
             height: 30px;
             border: 3px solid #eee;
             border-top-color: #036666;
             border-radius: 50%;
-            animation: bq-spin 0.6s linear infinite;
+            animation: sf-spin 0.6s linear infinite;
             margin: 0 auto 12px;
         }
         @media (max-width: 480px) {
-            .bq-drawer { left: -100vw; width: 100vw; }
-            .bq-drawer.open { left: 0; }
+            .sf-drawer { left: -100vw; width: 100vw; }
+            .sf-drawer.open { left: 0; }
         }
         ';
     }
@@ -317,14 +317,14 @@ class Boshqab_Drawer {
             var drawerOpen = false;
             
             // باز کردن دراور
-            $(document).on("click", ".bq-drawer-floating-btn, .bq-cart-bar", function() {
+            $(document).on("click", ".sf-drawer-floating-btn, .sf-cart-bar", function() {
                 openDrawer();
             });
             
             function openDrawer() {
                 drawerOpen = true;
-                $(".bq-drawer-overlay").addClass("open");
-                $(".bq-drawer").addClass("open");
+                $(".sf-drawer-overlay").addClass("open");
+                $(".sf-drawer").addClass("open");
                 $("body").css("overflow", "hidden");
                 loadDrawerContent();
             }
@@ -332,30 +332,30 @@ class Boshqab_Drawer {
             // بستن دراور
             function closeDrawer() {
                 drawerOpen = false;
-                $(".bq-drawer-overlay").removeClass("open");
-                $(".bq-drawer").removeClass("open");
+                $(".sf-drawer-overlay").removeClass("open");
+                $(".sf-drawer").removeClass("open");
                 $("body").css("overflow", "");
             }
             
-            $(document).on("click", ".bq-drawer-close, .bq-drawer-overlay", function() {
+            $(document).on("click", ".sf-drawer-close, .sf-drawer-overlay", function() {
                 closeDrawer();
             });
             
             // بارگذاری محتوای دراور
             function loadDrawerContent() {
-                $(".bq-drawer-body").html(
-                    "<div class=\"bq-drawer-loader\">" +
-                    "<div class=\"bq-drawer-spinner\"></div>" +
+                $(".sf-drawer-body").html(
+                    "<div class=\"sf-drawer-loader\">" +
+                    "<div class=\"sf-drawer-spinner\"></div>" +
                     "<p style=\"color:#888;\">در حال بارگذاری...</p>" +
                     "</div>"
                 );
                 
-                $.post(bq_ajax.ajax_url, {
-                    action: "bq_get_drawer_content",
-                    nonce: bq_ajax.nonce
+                $.post(sf_ajax.ajax_url, {
+                    action: "sf_get_drawer_content",
+                    nonce: sf_ajax.nonce
                 }, function(response) {
                     if (response.success) {
-                        $(".bq-drawer-body").html(response.data.html);
+                        $(".sf-drawer-body").html(response.data.html);
                         updateFooter(response.data);
                         updateFloatingButton(response.data);
                     }
@@ -363,25 +363,25 @@ class Boshqab_Drawer {
             }
             
             // تغییر تعداد
-            $(document).on("click", ".bq-drawer-qty-minus", function() {
+            $(document).on("click", ".sf-drawer-qty-minus", function() {
                 var key = $(this).data("key");
-                var qty = parseInt($(this).siblings(".bq-drawer-qty").text()) - 1;
+                var qty = parseInt($(this).siblings(".sf-drawer-qty").text()) - 1;
                 if (qty < 1) { qty = 1; }
                 updateCartItem(key, qty);
             });
             
-            $(document).on("click", ".bq-drawer-qty-plus", function() {
+            $(document).on("click", ".sf-drawer-qty-plus", function() {
                 var key = $(this).data("key");
-                var qty = parseInt($(this).siblings(".bq-drawer-qty").text()) + 1;
+                var qty = parseInt($(this).siblings(".sf-drawer-qty").text()) + 1;
                 updateCartItem(key, qty);
             });
             
             function updateCartItem(key, qty) {
-                $.post(bq_ajax.ajax_url, {
-                    action: "bq_drawer_update_qty",
+                $.post(sf_ajax.ajax_url, {
+                    action: "sf_drawer_update_qty",
                     cart_key: key,
                     quantity: qty,
-                    nonce: bq_ajax.nonce
+                    nonce: sf_ajax.nonce
                 }, function(response) {
                     if (response.success) {
                         $("body").trigger("wc_fragment_refresh");
@@ -391,12 +391,12 @@ class Boshqab_Drawer {
             }
             
             // حذف آیتم
-            $(document).on("click", ".bq-drawer-remove-item", function() {
+            $(document).on("click", ".sf-drawer-remove-item", function() {
                 var key = $(this).data("key");
-                $.post(bq_ajax.ajax_url, {
-                    action: "bq_drawer_remove_item",
+                $.post(sf_ajax.ajax_url, {
+                    action: "sf_drawer_remove_item",
                     cart_key: key,
-                    nonce: bq_ajax.nonce
+                    nonce: sf_ajax.nonce
                 }, function(response) {
                     if (response.success) {
                         $("body").trigger("wc_fragment_refresh");
@@ -406,11 +406,11 @@ class Boshqab_Drawer {
             });
             
             // خالی کردن سبد
-            $(document).on("click", ".bq-drawer-empty-btn", function() {
+            $(document).on("click", ".sf-drawer-empty-btn", function() {
                 if (!confirm("سبد خرید خالی شود؟")) return;
-                $.post(bq_ajax.ajax_url, {
-                    action: "bq_drawer_empty_cart",
-                    nonce: bq_ajax.nonce
+                $.post(sf_ajax.ajax_url, {
+                    action: "sf_drawer_empty_cart",
+                    nonce: sf_ajax.nonce
                 }, function(response) {
                     if (response.success) {
                         $("body").trigger("wc_fragment_refresh");
@@ -421,26 +421,26 @@ class Boshqab_Drawer {
             
             function updateFooter(data) {
                 if (data.count > 0) {
-                    $(".bq-drawer-footer").html(
-                        "<div class=\"bq-drawer-total\">" +
+                    $(".sf-drawer-footer").html(
+                        "<div class=\"sf-drawer-total\">" +
                         "<span>جمع کل</span>" +
                         "<span>" + data.total + "</span>" +
                         "</div>" +
-                        "<a href=\"" + data.checkout_url + "\" class=\"bq-drawer-checkout-btn\">" +
+                        "<a href=\"" + data.checkout_url + "\" class=\"sf-drawer-checkout-btn\">" +
                         "تسویه حساب (" + data.count + " آیتم)" +
                         "</a>"
                     ).show();
                 } else {
-                    $(".bq-drawer-footer").hide();
+                    $(".sf-drawer-footer").hide();
                 }
             }
             
             function updateFloatingButton(data) {
                 if (data.count > 0) {
-                    $(".bq-drawer-floating-btn").show();
-                    $(".bq-drawer-floating-count").text(data.count);
+                    $(".sf-drawer-floating-btn").show();
+                    $(".sf-drawer-floating-count").text(data.count);
                 } else {
-                    $(".bq-drawer-floating-btn").hide();
+                    $(".sf-drawer-floating-btn").hide();
                 }
             }
             
@@ -449,10 +449,10 @@ class Boshqab_Drawer {
                 var count = $(".cart-contents .count, .cart-total .count, .widget_shopping_cart .count").first().text();
                 count = parseInt(count) || 0;
                 if (count > 0) {
-                    $(".bq-drawer-floating-btn").show();
-                    $(".bq-drawer-floating-count").text(count);
+                    $(".sf-drawer-floating-btn").show();
+                    $(".sf-drawer-floating-count").text(count);
                 } else {
-                    $(".bq-drawer-floating-btn").hide();
+                    $(".sf-drawer-floating-btn").hide();
                 }
             });
             
@@ -461,8 +461,8 @@ class Boshqab_Drawer {
                 var count = $(".cart-contents .count, .widget_shopping_cart .count").first().text();
                 count = parseInt(count) || 0;
                 if (count > 0) {
-                    $(".bq-drawer-floating-btn").show();
-                    $(".bq-drawer-floating-count").text(count);
+                    $(".sf-drawer-floating-btn").show();
+                    $(".sf-drawer-floating-count").text(count);
                 }
             }, 1000);
         });
@@ -471,40 +471,40 @@ class Boshqab_Drawer {
 
     public function add_drawer() {
         ?>
-        <button class="bq-drawer-floating-btn" id="bq-drawer-floating-btn">
+        <button class="sf-drawer-floating-btn" id="sf-drawer-floating-btn">
             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1.003 1.003 0 0020 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
             </svg>
-            <span class="bq-drawer-floating-count" style="display:none;">0</span>
+            <span class="sf-drawer-floating-count" style="display:none;">0</span>
         </button>
-        <div class="bq-drawer-overlay"></div>
-        <div class="bq-drawer">
-            <div class="bq-drawer-header">
+        <div class="sf-drawer-overlay"></div>
+        <div class="sf-drawer">
+            <div class="sf-drawer-header">
                 <h3>🛒 سبد خرید</h3>
                 <div>
-                    <button class="bq-drawer-empty-btn">🗑️ خالی کردن</button>
-                    <button class="bq-drawer-close">&times;</button>
+                    <button class="sf-drawer-empty-btn">🗑️ خالی کردن</button>
+                    <button class="sf-drawer-close">&times;</button>
                 </div>
             </div>
-            <div class="bq-drawer-body">
-                <div class="bq-drawer-empty">
-                    <div class="bq-drawer-empty-icon">🛒</div>
+            <div class="sf-drawer-body">
+                <div class="sf-drawer-empty">
+                    <div class="sf-drawer-empty-icon">🛒</div>
                     <p>سبد خرید شما خالی است</p>
                 </div>
             </div>
-            <div class="bq-drawer-footer" style="display:none;"></div>
+            <div class="sf-drawer-footer" style="display:none;"></div>
         </div>
         <?php
     }
 
     public function ajax_get_drawer_content() {
-        check_ajax_referer('bq_nonce', 'nonce');
+        check_ajax_referer('sf_nonce', 'nonce');
         
         ob_start();
         
         if (WC()->cart->is_empty()) {
-            echo '<div class="bq-drawer-empty">';
-            echo '<div class="bq-drawer-empty-icon">🛒</div>';
+            echo '<div class="sf-drawer-empty">';
+            echo '<div class="sf-drawer-empty-icon">🛒</div>';
             echo '<p>سبد خرید شما خالی است</p>';
             echo '</div>';
         } else {
@@ -514,18 +514,18 @@ class Boshqab_Drawer {
                 $price = $product->get_price();
                 $subtotal = $cart_item['line_subtotal'] + $cart_item['line_subtotal_tax'];
                 ?>
-                <div class="bq-drawer-item">
-                    <div class="bq-drawer-item-image">
+                <div class="sf-drawer-item">
+                    <div class="sf-drawer-item-image">
                         <?php echo $image; ?>
                     </div>
-                    <div class="bq-drawer-item-info">
-                        <div class="bq-drawer-item-name"><?php echo esc_html($product->get_name()); ?></div>
-                        <div class="bq-drawer-item-price"><?php echo wc_price($price); ?></div>
-                        <div class="bq-drawer-item-actions">
-                            <button class="bq-drawer-qty-btn bq-drawer-qty-minus" data-key="<?php echo esc_attr($cart_item_key); ?>">−</button>
-                            <span class="bq-drawer-qty"><?php echo $cart_item['quantity']; ?></span>
-                            <button class="bq-drawer-qty-btn bq-drawer-qty-plus" data-key="<?php echo esc_attr($cart_item_key); ?>">+</button>
-                            <button class="bq-drawer-remove-item" data-key="<?php echo esc_attr($cart_item_key); ?>">🗑️ حذف</button>
+                    <div class="sf-drawer-item-info">
+                        <div class="sf-drawer-item-name"><?php echo esc_html($product->get_name()); ?></div>
+                        <div class="sf-drawer-item-price"><?php echo wc_price($price); ?></div>
+                        <div class="sf-drawer-item-actions">
+                            <button class="sf-drawer-qty-btn sf-drawer-qty-minus" data-key="<?php echo esc_attr($cart_item_key); ?>">−</button>
+                            <span class="sf-drawer-qty"><?php echo $cart_item['quantity']; ?></span>
+                            <button class="sf-drawer-qty-btn sf-drawer-qty-plus" data-key="<?php echo esc_attr($cart_item_key); ?>">+</button>
+                            <button class="sf-drawer-remove-item" data-key="<?php echo esc_attr($cart_item_key); ?>">🗑️ حذف</button>
                         </div>
                     </div>
                 </div>
@@ -544,7 +544,7 @@ class Boshqab_Drawer {
     }
 
     public function ajax_update_quantity() {
-        check_ajax_referer('bq_nonce', 'nonce');
+        check_ajax_referer('sf_nonce', 'nonce');
         
         $cart_key = sanitize_text_field($_POST['cart_key'] ?? '');
         $quantity = intval($_POST['quantity'] ?? 1);
@@ -566,7 +566,7 @@ class Boshqab_Drawer {
     }
 
     public function ajax_remove_item() {
-        check_ajax_referer('bq_nonce', 'nonce');
+        check_ajax_referer('sf_nonce', 'nonce');
         
         $cart_key = sanitize_text_field($_POST['cart_key'] ?? '');
         
@@ -583,7 +583,7 @@ class Boshqab_Drawer {
     }
 
     public function ajax_empty_cart() {
-        check_ajax_referer('bq_nonce', 'nonce');
+        check_ajax_referer('sf_nonce', 'nonce');
         WC()->cart->empty_cart();
         wp_send_json_success();
     }
@@ -591,12 +591,12 @@ class Boshqab_Drawer {
     public function cart_fragments($fragments) {
         ob_start();
         ?>
-        <span class="bq-drawer-floating-count"><?php echo WC()->cart->get_cart_contents_count(); ?></span>
+        <span class="sf-drawer-floating-count"><?php echo WC()->cart->get_cart_contents_count(); ?></span>
         <?php
-        $fragments['.bq-drawer-floating-count'] = ob_get_clean();
+        $fragments['.sf-drawer-floating-count'] = ob_get_clean();
         
         return $fragments;
     }
 }
 
-Boshqab_Drawer::instance();
+Sofre_Drawer::instance();

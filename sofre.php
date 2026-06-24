@@ -1,11 +1,11 @@
 <?php
 /**
- * Plugin Name: بشقاب - مدیریت سفارشات رستوران
- * Plugin URI: https://example.com/boshqab
- * Description: افزونه مدیریت منو و سفارشات رستوران — بشقاب
+ * Plugin Name: سفره - مدیریت سفارشات رستوران
+ * Plugin URI: https://example.com/sofre
+ * Description: افزونه مدیریت منو و سفارشات رستوران — سفره
  * Version: 1.1.0
- * Author: Boshqab
- * Text Domain: boshqab
+ * Author: Sofre
+ * Text Domain: sofre
  * Domain Path: /languages
  * Requires WooCommerce: true
  */
@@ -14,11 +14,11 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('BQ_VERSION', '1.1.0');
-define('BQ_PATH', plugin_dir_path(__FILE__));
-define('BQ_URL', plugin_dir_url(__FILE__));
+define('SF_VERSION', '1.1.0');
+define('SF_PATH', plugin_dir_path(__FILE__));
+define('SF_URL', plugin_dir_url(__FILE__));
 
-class Boshqab_Plugin {
+class Sofre_Plugin {
 
     private static $instance = null;
 
@@ -58,13 +58,13 @@ class Boshqab_Plugin {
         );
         
         foreach ($defaults as $key => $value) {
-            if (get_option('bq_' . $key) === false) {
-                add_option('bq_' . $key, $value);
+            if (get_option('sf_' . $key) === false) {
+                add_option('sf_' . $key, $value);
             }
         }
 
         // ذخیره پیشفرض ساعت کاری هفتگی
-        if (!get_option('bq_business_hours')) {
+        if (!get_option('sf_business_hours')) {
             $week_hours = array();
             $days = array('saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday');
             foreach ($days as $day) {
@@ -74,7 +74,7 @@ class Boshqab_Plugin {
                     'close_time' => '23:00',
                 );
             }
-            update_option('bq_business_hours', $week_hours);
+            update_option('sf_business_hours', $week_hours);
         }
     }
 
@@ -87,115 +87,115 @@ class Boshqab_Plugin {
         add_action('init', array($this, 'register_order_statuses'));
         
         // Ajax handlers
-        add_action('wp_ajax_bq_save_settings', array($this, 'ajax_save_settings'));
-        add_action('wp_ajax_bq_update_order_status', array($this, 'ajax_update_order_status'));
-        add_action('wp_ajax_bq_toggle_restaurant', array($this, 'ajax_toggle_restaurant'));
-        add_action('wp_ajax_bq_check_new_orders', array($this, 'ajax_check_new_orders'));
-        add_action('wp_ajax_bq_get_order_detail', array($this, 'ajax_get_order_detail'));
-        add_action('wp_ajax_nopriv_bq_get_categories', array($this, 'ajax_get_categories'));
-        add_action('wp_ajax_bq_get_categories', array($this, 'ajax_get_categories'));
-        add_action('wp_ajax_nopriv_bq_check_restaurant_status', array($this, 'ajax_check_restaurant_status'));
-        add_action('wp_ajax_bq_check_restaurant_status', array($this, 'ajax_check_restaurant_status'));
+        add_action('wp_ajax_sf_save_settings', array($this, 'ajax_save_settings'));
+        add_action('wp_ajax_sf_update_order_status', array($this, 'ajax_update_order_status'));
+        add_action('wp_ajax_sf_toggle_restaurant', array($this, 'ajax_toggle_restaurant'));
+        add_action('wp_ajax_sf_check_new_orders', array($this, 'ajax_check_new_orders'));
+        add_action('wp_ajax_sf_get_order_detail', array($this, 'ajax_get_order_detail'));
+        add_action('wp_ajax_nopriv_sf_get_categories', array($this, 'ajax_get_categories'));
+        add_action('wp_ajax_sf_get_categories', array($this, 'ajax_get_categories'));
+        add_action('wp_ajax_nopriv_sf_check_restaurant_status', array($this, 'ajax_check_restaurant_status'));
+        add_action('wp_ajax_sf_check_restaurant_status', array($this, 'ajax_check_restaurant_status'));
     }
 
     private function includes() {
-        require_once BQ_PATH . 'includes/class-menu.php';
-        require_once BQ_PATH . 'includes/class-orders.php';
-        require_once BQ_PATH . 'includes/class-frontend.php';
-        require_once BQ_PATH . 'includes/class-otp-login.php';
-        require_once BQ_PATH . 'includes/class-drawer.php';
-        require_once BQ_PATH . 'includes/class-services.php';
-        require_once BQ_PATH . 'includes/class-shipping.php';
+        require_once SF_PATH . 'includes/class-menu.php';
+        require_once SF_PATH . 'includes/class-orders.php';
+        require_once SF_PATH . 'includes/class-frontend.php';
+        require_once SF_PATH . 'includes/class-otp-login.php';
+        require_once SF_PATH . 'includes/class-drawer.php';
+        require_once SF_PATH . 'includes/class-services.php';
+        require_once SF_PATH . 'includes/class-shipping.php';
     }
 
     private function create_default_pages() {
-        if (!get_option('bq_menu_page_id')) {
+        if (!get_option('sf_menu_page_id')) {
             $page_id = wp_insert_post(array(
                 'post_title' => 'منوی رستوران',
-                'post_content' => '[boshqab_menu]',
+                'post_content' => '[sofre_menu]',
                 'post_status' => 'publish',
                 'post_type' => 'page',
                 'comment_status' => 'closed',
             ));
             if ($page_id && !is_wp_error($page_id)) {
-                update_option('bq_menu_page_id', $page_id);
+                update_option('sf_menu_page_id', $page_id);
             }
         }
     }
 
     public function admin_menu() {
-        $is_open = get_option('bq_is_open', 'yes');
+        $is_open = get_option('sf_is_open', 'yes');
         $open_icon = ($is_open === 'yes') ? '<span style="color:#4CAF50;">●</span>' : '<span style="color:#f44336;">○</span>';
         
         add_menu_page(
-            'بشقاب',
-            'بشقاب ' . $open_icon,
+            'سفره',
+            'سفره ' . $open_icon,
             'manage_options',
-            'boshqab',
+            'sofre',
             array($this, 'dashboard_page'),
             'dashicons-food',
             55
         );
 
         add_submenu_page(
-            'boshqab',
+            'sofre',
             'سفارشات',
             'سفارشات',
             'manage_woocommerce',
-            'boshqab-orders',
+            'sofre-orders',
             array($this, 'orders_page')
         );
 
         add_submenu_page(
-            'boshqab',
+            'sofre',
             'تنظیمات',
             'تنظیمات',
             'manage_options',
-            'boshqab-settings',
+            'sofre-settings',
             array($this, 'settings_page')
         );
     }
 
     public function admin_assets($hook) {
-        if (strpos($hook, 'boshqab') === false && $hook !== 'post.php') {
+        if (strpos($hook, 'sofre') === false && $hook !== 'post.php') {
             return;
         }
         
-        wp_enqueue_style('bq-admin', BQ_URL . 'assets/admin.css', array(), BQ_VERSION);
-        wp_enqueue_script('bq-admin', BQ_URL . 'assets/admin.js', array('jquery'), BQ_VERSION, true);
-        wp_localize_script('bq-admin', 'bq_ajax', array(
+        wp_enqueue_style('sf-admin', SF_URL . 'assets/admin.css', array(), SF_VERSION);
+        wp_enqueue_script('sf-admin', SF_URL . 'assets/admin.js', array('jquery'), SF_VERSION, true);
+        wp_localize_script('sf-admin', 'sf_ajax', array(
             'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('bq_nonce'),
-            'is_restaurant_open' => get_option('bq_is_open', 'yes'),
-            'restaurant_name' => get_option('bq_restaurant_name', get_bloginfo('name')),
+            'nonce' => wp_create_nonce('sf_nonce'),
+            'is_restaurant_open' => get_option('sf_is_open', 'yes'),
+            'restaurant_name' => get_option('sf_restaurant_name', get_bloginfo('name')),
         ));
 
         // انکود کردن صدای پیشفرض اعلان (Base64 Beep)
-        $sound = get_option('bq_notification_sound', '');
+        $sound = get_option('sf_notification_sound', '');
         if (empty($sound)) {
             // یک صدای بوق ساده به صورت base64
             $sound = base64_encode('beep');
         }
-        wp_localize_script('bq-admin', 'bq_sound', array(
+        wp_localize_script('sf-admin', 'sf_sound', array(
             'data' => $sound,
         ));
     }
 
     public function frontend_assets() {
         global $post;
-        $menu_page_id = get_option('bq_menu_page_id');
+        $menu_page_id = get_option('sf_menu_page_id');
         $is_menu_page = ($menu_page_id && is_page($menu_page_id));
-        $has_shortcode = ($post && has_shortcode($post->post_content, 'boshqab_menu'));
+        $has_shortcode = ($post && has_shortcode($post->post_content, 'sofre_menu'));
         
         if (!$is_menu_page && !$has_shortcode) {
             return;
         }
         
-        wp_enqueue_style('bq-frontend', BQ_URL . 'assets/frontend.css', array(), BQ_VERSION);
-        wp_enqueue_script('bq-frontend', BQ_URL . 'assets/frontend.js', array('jquery'), BQ_VERSION, true);
-        wp_localize_script('bq-frontend', 'bq_ajax', array(
+        wp_enqueue_style('sf-frontend', SF_URL . 'assets/frontend.css', array(), SF_VERSION);
+        wp_enqueue_script('sf-frontend', SF_URL . 'assets/frontend.js', array('jquery'), SF_VERSION, true);
+        wp_localize_script('sf-frontend', 'sf_ajax', array(
             'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('bq_nonce'),
+            'nonce' => wp_create_nonce('sf_nonce'),
             'cart_url' => wc_get_cart_url(),
             'restaurant_open' => $this->is_restaurant_open(),
         ));
@@ -204,7 +204,7 @@ class Boshqab_Plugin {
     // ============ STATUSES ============
 
     public function register_order_statuses() {
-        register_post_status('wc-bq-pending', array(
+        register_post_status('wc-sf-pending', array(
             'label' => 'در انتظار تایید رستوران',
             'public' => true,
             'show_in_admin_status_list' => true,
@@ -212,7 +212,7 @@ class Boshqab_Plugin {
             'label_count' => _n_noop('در انتظار تایید (%s)', 'در انتظار تایید (%s)'),
         ));
         
-        register_post_status('wc-bq-preparing', array(
+        register_post_status('wc-sf-preparing', array(
             'label' => 'در حال آماده‌سازی',
             'public' => true,
             'show_in_admin_status_list' => true,
@@ -220,7 +220,7 @@ class Boshqab_Plugin {
             'label_count' => _n_noop('در حال آماده‌سازی (%s)', 'در حال آماده‌سازی (%s)'),
         ));
         
-        register_post_status('wc-bq-ready', array(
+        register_post_status('wc-sf-ready', array(
             'label' => 'آماده تحویل',
             'public' => true,
             'show_in_admin_status_list' => true,
@@ -228,7 +228,7 @@ class Boshqab_Plugin {
             'label_count' => _n_noop('آماده تحویل (%s)', 'آماده تحویل (%s)'),
         ));
         
-        register_post_status('wc-bq-delivering', array(
+        register_post_status('wc-sf-delivering', array(
             'label' => 'در حال ارسال',
             'public' => true,
             'show_in_admin_status_list' => true,
@@ -236,7 +236,7 @@ class Boshqab_Plugin {
             'label_count' => _n_noop('در حال ارسال (%s)', 'در حال ارسال (%s)'),
         ));
         
-        register_post_status('wc-bq-delivered', array(
+        register_post_status('wc-sf-delivered', array(
             'label' => 'تحویل شده',
             'public' => true,
             'show_in_admin_status_list' => true,
@@ -248,18 +248,18 @@ class Boshqab_Plugin {
     // ============ RESTAURANT STATUS ============
 
     public function is_restaurant_open() {
-        $is_open_setting = get_option('bq_is_open', 'yes');
+        $is_open_setting = get_option('sf_is_open', 'yes');
         if ($is_open_setting === 'no') {
             return false;
         }
 
-        $enable_ordering = get_option('bq_enable_ordering', 'yes');
+        $enable_ordering = get_option('sf_enable_ordering', 'yes');
         if ($enable_ordering === 'no') {
             return false;
         }
 
         // بررسی ساعت کاری هفتگی
-        $business_hours = get_option('bq_business_hours', array());
+        $business_hours = get_option('sf_business_hours', array());
         if (!empty($business_hours)) {
             $today = $this->get_persian_day_name();
             if (isset($business_hours[$today])) {
@@ -296,7 +296,7 @@ class Boshqab_Plugin {
     }
 
     public function get_restaurant_status_text() {
-        $business_hours = get_option('bq_business_hours', array());
+        $business_hours = get_option('sf_business_hours', array());
         $today = $this->get_persian_day_name();
         
         $day_names = array(
@@ -324,28 +324,28 @@ class Boshqab_Plugin {
     // ============ PAGES ============
 
     public function dashboard_page() {
-        $orders_count = wc_orders_count('bq-pending') + wc_orders_count('processing');
+        $orders_count = wc_orders_count('sf-pending') + wc_orders_count('processing');
         $menu_items = wp_count_posts('product')->publish;
         $today_orders = $this->get_today_orders_count();
         $is_open = $this->is_restaurant_open();
         ?>
-        <div class="bq-dashboard">
-            <div class="bq-dashboard-header">
-                <h1>داشبورد بشقاب</h1>
-                <div class="bq-restaurant-toggle">
-                    <span class="bq-toggle-label">وضعیت رستوران:</span>
-                    <button class="bq-toggle-btn <?php echo $is_open ? 'open' : 'closed'; ?>" 
-                            id="bq-toggle-restaurant"
+        <div class="sf-dashboard">
+            <div class="sf-dashboard-header">
+                <h1>داشبورد سفره</h1>
+                <div class="sf-restaurant-toggle">
+                    <span class="sf-toggle-label">وضعیت رستوران:</span>
+                    <button class="sf-toggle-btn <?php echo $is_open ? 'open' : 'closed'; ?>" 
+                            id="sf-toggle-restaurant"
                             data-current="<?php echo $is_open ? 'open' : 'closed'; ?>">
-                        <span class="bq-toggle-dot"></span>
-                        <span class="bq-toggle-text"><?php echo $is_open ? 'باز' : 'بسته'; ?></span>
+                        <span class="sf-toggle-dot"></span>
+                        <span class="sf-toggle-text"><?php echo $is_open ? 'باز' : 'بسته'; ?></span>
                     </button>
                 </div>
             </div>
 
-            <div class="bq-status-banner <?php echo $is_open ? 'bq-status-open' : 'bq-status-closed'; ?>" id="bq-status-banner">
-                <span class="bq-status-icon"><?php echo $is_open ? '🟢' : '🔴'; ?></span>
-                <span class="bq-status-msg">
+            <div class="sf-status-banner <?php echo $is_open ? 'sf-status-open' : 'sf-status-closed'; ?>" id="sf-status-banner">
+                <span class="sf-status-icon"><?php echo $is_open ? '🟢' : '🔴'; ?></span>
+                <span class="sf-status-msg">
                     <?php 
                     if ($is_open) {
                         echo 'رستوران باز است و سفارش پذیرفته می‌شود';
@@ -354,35 +354,35 @@ class Boshqab_Plugin {
                     }
                     ?>
                 </span>
-                <span class="bq-hours-text"><?php echo $this->get_restaurant_status_text(); ?></span>
+                <span class="sf-hours-text"><?php echo $this->get_restaurant_status_text(); ?></span>
             </div>
 
-            <div class="bq-stats-grid">
-                <div class="bq-stat-card">
-                    <span class="bq-stat-icon">📋</span>
-                    <span class="bq-stat-number"><?php echo $orders_count; ?></span>
-                    <span class="bq-stat-label">سفارشات فعال</span>
+            <div class="sf-stats-grid">
+                <div class="sf-stat-card">
+                    <span class="sf-stat-icon">📋</span>
+                    <span class="sf-stat-number"><?php echo $orders_count; ?></span>
+                    <span class="sf-stat-label">سفارشات فعال</span>
                 </div>
-                <div class="bq-stat-card">
-                    <span class="bq-stat-icon">🍽️</span>
-                    <span class="bq-stat-number"><?php echo $menu_items; ?></span>
-                    <span class="bq-stat-label">آیتم‌های منو</span>
+                <div class="sf-stat-card">
+                    <span class="sf-stat-icon">🍽️</span>
+                    <span class="sf-stat-number"><?php echo $menu_items; ?></span>
+                    <span class="sf-stat-label">آیتم‌های منو</span>
                 </div>
-                <div class="bq-stat-card">
-                    <span class="bq-stat-icon">📅</span>
-                    <span class="bq-stat-number"><?php echo $today_orders; ?></span>
-                    <span class="bq-stat-label">سفارشات امروز</span>
+                <div class="sf-stat-card">
+                    <span class="sf-stat-icon">📅</span>
+                    <span class="sf-stat-number"><?php echo $today_orders; ?></span>
+                    <span class="sf-stat-label">سفارشات امروز</span>
                 </div>
-                <div class="bq-stat-card">
-                    <span class="bq-stat-icon">👁️</span>
-                    <span class="bq-stat-number"><a href="<?php echo get_permalink(get_option('bq_menu_page_id')); ?>" target="_blank">مشاهده</a></span>
-                    <span class="bq-stat-label">نمایش منو</span>
+                <div class="sf-stat-card">
+                    <span class="sf-stat-icon">👁️</span>
+                    <span class="sf-stat-number"><a href="<?php echo get_permalink(get_option('sf_menu_page_id')); ?>" target="_blank">مشاهده</a></span>
+                    <span class="sf-stat-label">نمایش منو</span>
                 </div>
             </div>
             
-            <div class="bq-section">
-                <h2>سفارشات جدید <span class="bq-live-badge" id="bq-live-badge" style="display:none;">🔔 جدید</span></h2>
-                <div id="bq-orders-container">
+            <div class="sf-section">
+                <h2>سفارشات جدید <span class="sf-live-badge" id="sf-live-badge" style="display:none;">🔔 جدید</span></h2>
+                <div id="sf-orders-container">
                     <?php $this->recent_orders_table(10); ?>
                 </div>
             </div>
@@ -391,94 +391,94 @@ class Boshqab_Plugin {
     }
 
     public function settings_page() {
-        if (isset($_POST['bq_save_settings']) && wp_verify_nonce($_POST['_wpnonce'] ?? '', 'bq_settings')) {
+        if (isset($_POST['sf_save_settings']) && wp_verify_nonce($_POST['_wpnonce'] ?? '', 'sf_settings')) {
             $this->save_settings();
         }
         ?>
-        <div class="bq-settings-wrap">
-            <h1>تنظیمات بشقاب</h1>
+        <div class="sf-settings-wrap">
+            <h1>تنظیمات سفره</h1>
             <form method="post" action="">
-                <?php wp_nonce_field('bq_settings'); ?>
-                <input type="hidden" name="bq_save_settings" value="1">
+                <?php wp_nonce_field('sf_settings'); ?>
+                <input type="hidden" name="sf_save_settings" value="1">
                 
-                <div class="bq-settings-section">
+                <div class="sf-settings-section">
                     <h2>اطلاعات رستوران</h2>
                     <table class="form-table">
                         <tr>
-                            <th><label for="bq_restaurant_name">نام رستوران</label></th>
-                            <td><input type="text" id="bq_restaurant_name" name="bq_restaurant_name" value="<?php echo esc_attr(get_option('bq_restaurant_name')); ?>" class="regular-text"></td>
+                            <th><label for="sf_restaurant_name">نام رستوران</label></th>
+                            <td><input type="text" id="sf_restaurant_name" name="sf_restaurant_name" value="<?php echo esc_attr(get_option('sf_restaurant_name')); ?>" class="regular-text"></td>
                         </tr>
                         <tr>
-                            <th><label for="bq_restaurant_logo">لوگوی رستوران</label></th>
+                            <th><label for="sf_restaurant_logo">لوگوی رستوران</label></th>
                             <td>
-                                <div class="bq-logo-upload">
-                                    <input type="hidden" id="bq_restaurant_logo" name="bq_restaurant_logo" value="<?php echo esc_attr(get_option('bq_restaurant_logo')); ?>">
-                                    <div class="bq-logo-preview" id="bq-logo-preview">
-                                        <?php $logo = get_option('bq_restaurant_logo'); ?>
+                                <div class="sf-logo-upload">
+                                    <input type="hidden" id="sf_restaurant_logo" name="sf_restaurant_logo" value="<?php echo esc_attr(get_option('sf_restaurant_logo')); ?>">
+                                    <div class="sf-logo-preview" id="sf-logo-preview">
+                                        <?php $logo = get_option('sf_restaurant_logo'); ?>
                                         <?php if ($logo): ?>
                                             <img src="<?php echo esc_url($logo); ?>" style="max-width:150px;max-height:80px;">
                                         <?php else: ?>
-                                            <span class="bq-logo-placeholder">لوگو انتخاب نشده</span>
+                                            <span class="sf-logo-placeholder">لوگو انتخاب نشده</span>
                                         <?php endif; ?>
                                     </div>
-                                    <button type="button" class="button bq-upload-logo-btn" id="bq-upload-logo">انتخاب لوگو</button>
-                                    <button type="button" class="button bq-remove-logo-btn" id="bq-remove-logo" <?php echo $logo ? '' : 'style="display:none;"'; ?>>حذف لوگو</button>
+                                    <button type="button" class="button sf-upload-logo-btn" id="sf-upload-logo">انتخاب لوگو</button>
+                                    <button type="button" class="button sf-remove-logo-btn" id="sf-remove-logo" <?php echo $logo ? '' : 'style="display:none;"'; ?>>حذف لوگو</button>
                                 </div>
                             </td>
                         </tr>
                         <tr>
-                            <th><label for="bq_restaurant_address">آدرس</label></th>
-                            <td><textarea id="bq_restaurant_address" name="bq_restaurant_address" rows="2" class="regular-text"><?php echo esc_textarea(get_option('bq_restaurant_address')); ?></textarea></td>
+                            <th><label for="sf_restaurant_address">آدرس</label></th>
+                            <td><textarea id="sf_restaurant_address" name="sf_restaurant_address" rows="2" class="regular-text"><?php echo esc_textarea(get_option('sf_restaurant_address')); ?></textarea></td>
                         </tr>
                         <tr>
-                            <th><label for="bq_restaurant_phone">تلفن تماس</label></th>
-                            <td><input type="text" id="bq_restaurant_phone" name="bq_restaurant_phone" value="<?php echo esc_attr(get_option('bq_restaurant_phone')); ?>" class="regular-text"></td>
+                            <th><label for="sf_restaurant_phone">تلفن تماس</label></th>
+                            <td><input type="text" id="sf_restaurant_phone" name="sf_restaurant_phone" value="<?php echo esc_attr(get_option('sf_restaurant_phone')); ?>" class="regular-text"></td>
                         </tr>
                     </table>
                 </div>
 
-                <div class="bq-settings-section">
+                <div class="sf-settings-section">
                     <h2>تنظیمات سفارش و ارسال</h2>
                     <table class="form-table">
                         <tr>
-                            <th><label for="bq_enable_ordering">فعال بودن سفارش‌گیری</label></th>
+                            <th><label for="sf_enable_ordering">فعال بودن سفارش‌گیری</label></th>
                             <td>
-                                <select id="bq_enable_ordering" name="bq_enable_ordering">
-                                    <option value="yes" <?php selected(get_option('bq_enable_ordering', 'yes'), 'yes'); ?>>فعال</option>
-                                    <option value="no" <?php selected(get_option('bq_enable_ordering', 'yes'), 'no'); ?>>غیرفعال</option>
+                                <select id="sf_enable_ordering" name="sf_enable_ordering">
+                                    <option value="yes" <?php selected(get_option('sf_enable_ordering', 'yes'), 'yes'); ?>>فعال</option>
+                                    <option value="no" <?php selected(get_option('sf_enable_ordering', 'yes'), 'no'); ?>>غیرفعال</option>
                                 </select>
                                 <p class="description">با غیرفعال کردن، کاربران نمی‌توانند سفارش ثبت کنند</p>
                             </td>
                         </tr>
                         <tr>
-                            <th><label for="bq_enable_delivery">ارسال درب منزل</label></th>
+                            <th><label for="sf_enable_delivery">ارسال درب منزل</label></th>
                             <td>
-                                <select id="bq_enable_delivery" name="bq_enable_delivery">
-                                    <option value="yes" <?php selected(get_option('bq_enable_delivery'), 'yes'); ?>>فعال</option>
-                                    <option value="no" <?php selected(get_option('bq_enable_delivery'), 'no'); ?>>غیرفعال</option>
+                                <select id="sf_enable_delivery" name="sf_enable_delivery">
+                                    <option value="yes" <?php selected(get_option('sf_enable_delivery'), 'yes'); ?>>فعال</option>
+                                    <option value="no" <?php selected(get_option('sf_enable_delivery'), 'no'); ?>>غیرفعال</option>
                                 </select>
                             </td>
                         </tr>
                         <tr>
-                            <th><label for="bq_delivery_fee">هزینه ارسال (تومان)</label></th>
-                            <td><input type="number" id="bq_delivery_fee" name="bq_delivery_fee" value="<?php echo esc_attr(get_option('bq_delivery_fee', 0)); ?>" class="small-text"></td>
+                            <th><label for="sf_delivery_fee">هزینه ارسال (تومان)</label></th>
+                            <td><input type="number" id="sf_delivery_fee" name="sf_delivery_fee" value="<?php echo esc_attr(get_option('sf_delivery_fee', 0)); ?>" class="small-text"></td>
                         </tr>
                         <tr>
-                            <th><label for="bq_free_delivery_min">ارسال رایگان برای سفارشات بالای (تومان)</label></th>
-                            <td><input type="number" id="bq_free_delivery_min" name="bq_free_delivery_min" value="<?php echo esc_attr(get_option('bq_free_delivery_min', 0)); ?>" class="small-text"></td>
+                            <th><label for="sf_free_delivery_min">ارسال رایگان برای سفارشات بالای (تومان)</label></th>
+                            <td><input type="number" id="sf_free_delivery_min" name="sf_free_delivery_min" value="<?php echo esc_attr(get_option('sf_free_delivery_min', 0)); ?>" class="small-text"></td>
                         </tr>
                         <tr>
-                            <th><label for="bq_min_order_amount">حداقل مبلغ سفارش (تومان)</label></th>
-                            <td><input type="number" id="bq_min_order_amount" name="bq_min_order_amount" value="<?php echo esc_attr(get_option('bq_min_order_amount', 0)); ?>" class="small-text"></td>
+                            <th><label for="sf_min_order_amount">حداقل مبلغ سفارش (تومان)</label></th>
+                            <td><input type="number" id="sf_min_order_amount" name="sf_min_order_amount" value="<?php echo esc_attr(get_option('sf_min_order_amount', 0)); ?>" class="small-text"></td>
                         </tr>
                     </table>
                 </div>
 
-                <div class="bq-settings-section">
+                <div class="sf-settings-section">
                     <h2>ساعت کاری هفتگی</h2>
                     <p class="description">ساعت‌های باز بودن رستوران در هر روز هفته</p>
                     <?php 
-                    $business_hours = get_option('bq_business_hours', array());
+                    $business_hours = get_option('sf_business_hours', array());
                     $days_list = array(
                         'saturday' => 'شنبه',
                         'sunday' => 'یکشنبه',
@@ -489,7 +489,7 @@ class Boshqab_Plugin {
                         'friday' => 'جمعه',
                     );
                     ?>
-                    <table class="form-table bq-hours-table">
+                    <table class="form-table sf-hours-table">
                         <thead>
                             <tr>
                                 <th>روز</th>
@@ -509,41 +509,41 @@ class Boshqab_Plugin {
                             <tr>
                                 <td><strong><?php echo $day_name; ?></strong></td>
                                 <td>
-                                    <select name="bq_hours[<?php echo $day_key; ?>][is_open]">
+                                    <select name="sf_hours[<?php echo $day_key; ?>][is_open]">
                                         <option value="yes" <?php selected($is_open_day, 'yes'); ?>>باز</option>
                                         <option value="no" <?php selected($is_open_day, 'no'); ?>>تعطیل</option>
                                     </select>
                                 </td>
-                                <td><input type="time" name="bq_hours[<?php echo $day_key; ?>][open_time]" value="<?php echo esc_attr($day_data['open_time'] ?? '09:00'); ?>"></td>
-                                <td><input type="time" name="bq_hours[<?php echo $day_key; ?>][close_time]" value="<?php echo esc_attr($day_data['close_time'] ?? '23:00'); ?>"></td>
+                                <td><input type="time" name="sf_hours[<?php echo $day_key; ?>][open_time]" value="<?php echo esc_attr($day_data['open_time'] ?? '09:00'); ?>"></td>
+                                <td><input type="time" name="sf_hours[<?php echo $day_key; ?>][close_time]" value="<?php echo esc_attr($day_data['close_time'] ?? '23:00'); ?>"></td>
                             </tr>
                             <?php endforeach; ?>
                         </tbody>
                     </table>
                 </div>
 
-                <div class="bq-settings-section">
+                <div class="sf-settings-section">
                     <h2>رنگ‌بندی منو</h2>
                     <table class="form-table">
                         <tr>
-                            <th><label for="bq_primary_color">رنگ اصلی</label></th>
-                            <td><input type="color" id="bq_primary_color" name="bq_primary_color" value="<?php echo esc_attr(get_option('bq_primary_color', '#036666')); ?>"></td>
+                            <th><label for="sf_primary_color">رنگ اصلی</label></th>
+                            <td><input type="color" id="sf_primary_color" name="sf_primary_color" value="<?php echo esc_attr(get_option('sf_primary_color', '#036666')); ?>"></td>
                         </tr>
                         <tr>
-                            <th><label for="bq_secondary_color">رنگ ثانویه</label></th>
-                            <td><input type="color" id="bq_secondary_color" name="bq_secondary_color" value="<?php echo esc_attr(get_option('bq_secondary_color', '#ad8b4c')); ?>"></td>
+                            <th><label for="sf_secondary_color">رنگ ثانویه</label></th>
+                            <td><input type="color" id="sf_secondary_color" name="sf_secondary_color" value="<?php echo esc_attr(get_option('sf_secondary_color', '#ad8b4c')); ?>"></td>
                         </tr>
                         <tr>
-                            <th><label for="bq_bg_color">رنگ پس‌زمینه</label></th>
-                            <td><input type="color" id="bq_bg_color" name="bq_bg_color" value="<?php echo esc_attr(get_option('bq_bg_color', '#1d1a18')); ?>"></td>
+                            <th><label for="sf_bg_color">رنگ پس‌زمینه</label></th>
+                            <td><input type="color" id="sf_bg_color" name="sf_bg_color" value="<?php echo esc_attr(get_option('sf_bg_color', '#1d1a18')); ?>"></td>
                         </tr>
                         <tr>
-                            <th><label for="bq_card_bg_color">رنگ کارت آیتم‌ها</label></th>
-                            <td><input type="color" id="bq_card_bg_color" name="bq_card_bg_color" value="<?php echo esc_attr(get_option('bq_card_bg_color', '#26211f')); ?>"></td>
+                            <th><label for="sf_card_bg_color">رنگ کارت آیتم‌ها</label></th>
+                            <td><input type="color" id="sf_card_bg_color" name="sf_card_bg_color" value="<?php echo esc_attr(get_option('sf_card_bg_color', '#26211f')); ?>"></td>
                         </tr>
                         <tr>
-                            <th><label for="bq_text_color">رنگ متن</label></th>
-                            <td><input type="color" id="bq_text_color" name="bq_text_color" value="<?php echo esc_attr(get_option('bq_text_color', '#ffffff')); ?>"></td>
+                            <th><label for="sf_text_color">رنگ متن</label></th>
+                            <td><input type="color" id="sf_text_color" name="sf_text_color" value="<?php echo esc_attr(get_option('sf_text_color', '#ffffff')); ?>"></td>
                         </tr>
                     </table>
                 </div>
@@ -562,11 +562,11 @@ class Boshqab_Plugin {
         }
         
         $fields = array(
-            'bq_restaurant_name', 'bq_restaurant_address', 'bq_restaurant_phone',
-            'bq_restaurant_logo', 'bq_primary_color', 'bq_secondary_color',
-            'bq_bg_color', 'bq_card_bg_color', 'bq_text_color',
-            'bq_enable_delivery', 'bq_delivery_fee', 'bq_free_delivery_min',
-            'bq_min_order_amount', 'bq_enable_ordering',
+            'sf_restaurant_name', 'sf_restaurant_address', 'sf_restaurant_phone',
+            'sf_restaurant_logo', 'sf_primary_color', 'sf_secondary_color',
+            'sf_bg_color', 'sf_card_bg_color', 'sf_text_color',
+            'sf_enable_delivery', 'sf_delivery_fee', 'sf_free_delivery_min',
+            'sf_min_order_amount', 'sf_enable_ordering',
         );
         
         foreach ($fields as $field) {
@@ -576,16 +576,16 @@ class Boshqab_Plugin {
         }
 
         // ذخیره ساعت کاری
-        if (isset($_POST['bq_hours']) && is_array($_POST['bq_hours'])) {
+        if (isset($_POST['sf_hours']) && is_array($_POST['sf_hours'])) {
             $hours = array();
-            foreach ($_POST['bq_hours'] as $day => $data) {
+            foreach ($_POST['sf_hours'] as $day => $data) {
                 $hours[sanitize_key($day)] = array(
                     'is_open' => isset($data['is_open']) ? sanitize_text_field($data['is_open']) : 'yes',
                     'open_time' => isset($data['open_time']) ? sanitize_text_field($data['open_time']) : '09:00',
                     'close_time' => isset($data['close_time']) ? sanitize_text_field($data['close_time']) : '23:00',
                 );
             }
-            update_option('bq_business_hours', $hours);
+            update_option('sf_business_hours', $hours);
         }
         
         echo '<div class="notice notice-success"><p>✅ تنظیمات با موفقیت ذخیره شد.</p></div>';
@@ -594,25 +594,25 @@ class Boshqab_Plugin {
     public function orders_page() {
         $status_filter = isset($_GET['status']) ? sanitize_text_field($_GET['status']) : '';
         ?>
-        <div class="bq-orders-wrap">
-            <div class="bq-orders-header">
+        <div class="sf-orders-wrap">
+            <div class="sf-orders-header">
                 <h1>مدیریت سفارشات</h1>
-                <div class="bq-live-indicator" id="bq-live-indicator">
-                    <span class="bq-live-dot"></span>
-                    <span class="bq-live-text">بررسی خودکار سفارشات جدید...</span>
+                <div class="sf-live-indicator" id="sf-live-indicator">
+                    <span class="sf-live-dot"></span>
+                    <span class="sf-live-text">بررسی خودکار سفارشات جدید...</span>
                 </div>
             </div>
 
             <!-- فیلتر وضعیت -->
-            <div class="bq-order-filters">
+            <div class="sf-order-filters">
                 <form method="get" action="">
-                    <input type="hidden" name="page" value="boshqab-orders">
+                    <input type="hidden" name="page" value="sofre-orders">
                     <select name="status" onchange="this.form.submit()">
                         <option value="">همه سفارشات فعال</option>
-                        <option value="bq-pending" <?php selected($status_filter, 'bq-pending'); ?>>در انتظار تایید</option>
-                        <option value="bq-preparing" <?php selected($status_filter, 'bq-preparing'); ?>>در حال آماده‌سازی</option>
-                        <option value="bq-ready" <?php selected($status_filter, 'bq-ready'); ?>>آماده تحویل</option>
-                        <option value="bq-delivering" <?php selected($status_filter, 'bq-delivering'); ?>>در حال ارسال</option>
+                        <option value="sf-pending" <?php selected($status_filter, 'sf-pending'); ?>>در انتظار تایید</option>
+                        <option value="sf-preparing" <?php selected($status_filter, 'sf-preparing'); ?>>در حال آماده‌سازی</option>
+                        <option value="sf-ready" <?php selected($status_filter, 'sf-ready'); ?>>آماده تحویل</option>
+                        <option value="sf-delivering" <?php selected($status_filter, 'sf-delivering'); ?>>در حال ارسال</option>
                         <option value="delivered" <?php selected($status_filter, 'delivered'); ?>>تحویل شده</option>
                         <option value="cancelled" <?php selected($status_filter, 'cancelled'); ?>>لغو شده</option>
                     </select>
@@ -620,22 +620,22 @@ class Boshqab_Plugin {
                 </form>
             </div>
 
-            <div id="bq-orders-table-container">
+            <div id="sf-orders-table-container">
                 <?php $this->recent_orders_table(100, $status_filter); ?>
             </div>
         </div>
 
         <!-- مودال جزئیات سفارش -->
-        <div id="bq-order-modal" class="bq-modal" style="display:none;">
-            <div class="bq-modal-overlay"></div>
-            <div class="bq-modal-content">
-                <div class="bq-modal-header">
-                    <h2>جزئیات سفارش <span id="bq-modal-order-number"></span></h2>
-                    <button class="bq-modal-close">&times;</button>
+        <div id="sf-order-modal" class="sf-modal" style="display:none;">
+            <div class="sf-modal-overlay"></div>
+            <div class="sf-modal-content">
+                <div class="sf-modal-header">
+                    <h2>جزئیات سفارش <span id="sf-modal-order-number"></span></h2>
+                    <button class="sf-modal-close">&times;</button>
                 </div>
-                <div class="bq-modal-body" id="bq-modal-body">
-                    <div class="bq-loading" style="text-align:center;padding:40px;">
-                        <div class="bq-spinner"></div>
+                <div class="sf-modal-body" id="sf-modal-body">
+                    <div class="sf-loading" style="text-align:center;padding:40px;">
+                        <div class="sf-spinner"></div>
                         <p>در حال بارگذاری...</p>
                     </div>
                 </div>
@@ -645,12 +645,12 @@ class Boshqab_Plugin {
     }
 
     private function recent_orders_table($limit = 10, $status_filter = '') {
-        $statuses = array('bq-pending', 'bq-preparing', 'bq-ready', 'bq-delivering', 'processing', 'on-hold');
+        $statuses = array('sf-pending', 'sf-preparing', 'sf-ready', 'sf-delivering', 'processing', 'on-hold');
         if (!empty($status_filter)) {
             $statuses = array($status_filter);
         }
         if ($status_filter === 'delivered') {
-            $statuses = array('bq-delivered');
+            $statuses = array('sf-delivered');
         }
         if ($status_filter === 'cancelled') {
             $statuses = array('cancelled');
@@ -668,8 +668,8 @@ class Boshqab_Plugin {
             return;
         }
         ?>
-        <div class="bq-orders-table-wrap">
-            <table class="bq-orders-table">
+        <div class="sf-orders-table-wrap">
+            <table class="sf-orders-table">
                 <thead>
                     <tr>
                         <th>شماره سفارش</th>
@@ -684,18 +684,18 @@ class Boshqab_Plugin {
                     <?php foreach ($orders as $order): 
                         $status = $order->get_status();
                         $status_labels = array(
-                            'bq-pending' => 'در انتظار تایید',
-                            'bq-preparing' => 'در حال آماده‌سازی',
-                            'bq-ready' => 'آماده تحویل',
-                            'bq-delivering' => 'در حال ارسال',
-                            'bq-delivered' => 'تحویل شده',
+                            'sf-pending' => 'در انتظار تایید',
+                            'sf-preparing' => 'در حال آماده‌سازی',
+                            'sf-ready' => 'آماده تحویل',
+                            'sf-delivering' => 'در حال ارسال',
+                            'sf-delivered' => 'تحویل شده',
                             'processing' => 'در حال پردازش',
                             'on-hold' => 'در انتظار',
                             'cancelled' => 'لغو شده',
                         );
-                        $status_class = str_replace('bq-', '', $status);
+                        $status_class = str_replace('sf-', '', $status);
                     ?>
-                    <tr class="bq-order-row <?php echo ($status === 'bq-pending') ? 'bq-row-new' : ''; ?>" data-order-id="<?php echo $order->get_id(); ?>">
+                    <tr class="sf-order-row <?php echo ($status === 'sf-pending') ? 'sf-row-new' : ''; ?>" data-order-id="<?php echo $order->get_id(); ?>">
                         <td>#<?php echo $order->get_order_number(); ?></td>
                         <td>
                             <?php echo esc_html($order->get_billing_first_name() . ' ' . $order->get_billing_last_name()); ?>
@@ -703,18 +703,18 @@ class Boshqab_Plugin {
                         </td>
                         <td><?php echo wc_format_datetime($order->get_date_created()); ?></td>
                         <td><?php echo wc_price($order->get_total()); ?></td>
-                        <td><span class="bq-status bq-status-<?php echo $status_class; ?>"><?php echo isset($status_labels[$status]) ? $status_labels[$status] : $status; ?></span></td>
+                        <td><span class="sf-status sf-status-<?php echo $status_class; ?>"><?php echo isset($status_labels[$status]) ? $status_labels[$status] : $status; ?></span></td>
                         <td>
-                            <select class="bq-order-status" data-order-id="<?php echo $order->get_id(); ?>">
+                            <select class="sf-order-status" data-order-id="<?php echo $order->get_id(); ?>">
                                 <option value="">تغییر وضعیت...</option>
-                                <option value="bq-pending" <?php selected($status, 'bq-pending'); ?>>در انتظار تایید</option>
-                                <option value="bq-preparing" <?php selected($status, 'bq-preparing'); ?>>در حال آماده‌سازی</option>
-                                <option value="bq-ready" <?php selected($status, 'bq-ready'); ?>>آماده تحویل</option>
-                                <option value="bq-delivering" <?php selected($status, 'bq-delivering'); ?>>در حال ارسال</option>
-                                <option value="bq-delivered" <?php selected($status, 'bq-delivered'); ?>>تحویل شده</option>
+                                <option value="sf-pending" <?php selected($status, 'sf-pending'); ?>>در انتظار تایید</option>
+                                <option value="sf-preparing" <?php selected($status, 'sf-preparing'); ?>>در حال آماده‌سازی</option>
+                                <option value="sf-ready" <?php selected($status, 'sf-ready'); ?>>آماده تحویل</option>
+                                <option value="sf-delivering" <?php selected($status, 'sf-delivering'); ?>>در حال ارسال</option>
+                                <option value="sf-delivered" <?php selected($status, 'sf-delivered'); ?>>تحویل شده</option>
                                 <option value="cancelled" <?php selected($status, 'cancelled'); ?>>لغو شده</option>
                             </select>
-                            <button class="button button-small bq-view-order" data-order-id="<?php echo $order->get_id(); ?>">جزئیات</button>
+                            <button class="button button-small sf-view-order" data-order-id="<?php echo $order->get_id(); ?>">جزئیات</button>
                             <a href="<?php echo admin_url('post.php?post=' . $order->get_id() . '&action=edit'); ?>" class="button button-small" target="_blank">ووکامرس</a>
                         </td>
                     </tr>
@@ -737,13 +737,13 @@ class Boshqab_Plugin {
     // ============ AJAX HANDLERS ============
 
     public function ajax_save_settings() {
-        check_ajax_referer('bq_nonce', 'nonce');
+        check_ajax_referer('sf_nonce', 'nonce');
         $this->save_settings();
         wp_send_json_success();
     }
 
     public function ajax_update_order_status() {
-        check_ajax_referer('bq_nonce', 'nonce');
+        check_ajax_referer('sf_nonce', 'nonce');
         
         $order_id = intval($_POST['order_id']);
         $status = sanitize_text_field($_POST['status']);
@@ -758,11 +758,11 @@ class Boshqab_Plugin {
     }
 
     public function ajax_toggle_restaurant() {
-        check_ajax_referer('bq_nonce', 'nonce');
+        check_ajax_referer('sf_nonce', 'nonce');
         
-        $current = get_option('bq_is_open', 'yes');
+        $current = get_option('sf_is_open', 'yes');
         $new = ($current === 'yes') ? 'no' : 'yes';
-        update_option('bq_is_open', $new);
+        update_option('sf_is_open', $new);
         
         $message = ($new === 'yes') ? '✅ رستوران باز شد' : '🔴 رستوران بسته شد';
         
@@ -773,7 +773,7 @@ class Boshqab_Plugin {
     }
 
     public function ajax_check_new_orders() {
-        check_ajax_referer('bq_nonce', 'nonce');
+        check_ajax_referer('sf_nonce', 'nonce');
         
         $last_check = isset($_POST['last_order_id']) ? intval($_POST['last_order_id']) : 0;
         
@@ -781,7 +781,7 @@ class Boshqab_Plugin {
             'limit' => 5,
             'orderby' => 'date',
             'order' => 'DESC',
-            'status' => array('bq-pending', 'processing'),
+            'status' => array('sf-pending', 'processing'),
             'type' => 'shop_order',
         ));
 
@@ -805,7 +805,7 @@ class Boshqab_Plugin {
                     'total' => wc_price($order->get_total()),
                     'date' => wc_format_datetime($order->get_date_created()),
                     'status' => $status,
-                    'status_label' => ($status === 'bq-pending') ? 'در انتظار تایید' : 'در حال پردازش',
+                    'status_label' => ($status === 'sf-pending') ? 'در انتظار تایید' : 'در حال پردازش',
                     'items_count' => $order->get_item_count(),
                 );
             }
@@ -822,7 +822,7 @@ class Boshqab_Plugin {
     }
 
     public function ajax_get_order_detail() {
-        check_ajax_referer('bq_nonce', 'nonce');
+        check_ajax_referer('sf_nonce', 'nonce');
         
         $order_id = intval($_POST['order_id']);
         $order = wc_get_order($order_id);
@@ -864,7 +864,7 @@ class Boshqab_Plugin {
     }
 
     public function ajax_get_categories() {
-        check_ajax_referer('bq_nonce', 'nonce');
+        check_ajax_referer('sf_nonce', 'nonce');
         
         $categories = get_terms(array(
             'taxonomy' => 'product_cat',
@@ -913,7 +913,7 @@ class Boshqab_Plugin {
     }
 
     public function ajax_check_restaurant_status() {
-        check_ajax_referer('bq_nonce', 'nonce');
+        check_ajax_referer('sf_nonce', 'nonce');
         $is_open = $this->is_restaurant_open();
         wp_send_json_success(array(
             'is_open' => $is_open,
@@ -922,4 +922,4 @@ class Boshqab_Plugin {
     }
 }
 
-Boshqab_Plugin::instance();
+Sofre_Plugin::instance();

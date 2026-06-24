@@ -1,7 +1,7 @@
 <?php if (!defined('ABSPATH')) exit;
-class Boshqab_Shipping_Pickup extends WC_Shipping_Method {
+class Sofre_Shipping_Pickup extends WC_Shipping_Method {
     public function __construct($instance_id = 0) {
-        $this->id = 'bq_pickup';
+        $this->id = 'sf_pickup';
         $this->instance_id = absint($instance_id);
         $this->method_title = 'تحویل حضوری';
         $this->method_description = 'مشتری سفارش را از رستوران تحویل می‌گیرد';
